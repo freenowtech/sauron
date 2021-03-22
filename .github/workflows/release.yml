@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["Build"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  list-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      paths: ${{ steps.list-plugins.outputs.paths }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: List Plugins
+        id: list-plugins
+        run: echo "::set-output name=paths::$(ls -d plugins/*/ |  jq -R -s -c 'split("\n")[:-1] | .+ ["sauron-core/"]')"
+
+  package-and-publish:
+    needs: list-projects
+    strategy:
+      max-parallel: 1
+      matrix:
+        path: ${{ fromJSON(needs.list-projects.outputs.paths) }}
+
+#    if: "${{ github.event.workflow_run.conclusion == 'success' &&
+    if: "${{ !contains(github.event.head_commit.message, '[ci skip]') }}"
+
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup Java 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            src:
+              - '${{ matrix.path }}**'
+
+      - name: Update local git repository. It is needed because other jobs might have released a new version
+        run: git pull
+
+      - name: Maven release and publish
+        if: steps.changes.outputs.src == 'true'
+        uses: qcastel/github-actions-maven-release@v1.12.16
+        with:
+          version-minor: true
+          release-branch-name: "main"
+          maven-args: "-Dmaven.javadoc.skip=true -DskipTests -DskipITs -Ddockerfile.skip -DdockerCompose.skip"
+          git-release-bot-name: "free-now-github"
+          git-release-bot-email: "70742378+free-now-github@users.noreply.github.com"
+          git-skip-sanity-check: ""
+          ssh-private-key: ${{ secrets.FREE_NOW_GITHUB_PRIVATE_KEY }}
+          maven-project-folder: ${{ matrix.path }}
+          maven-repo-server-id: github
+          maven-repo-server-username: ${{ secrets.FREE_NOW_GITHUB_USER }}
+          maven-repo-server-password: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
+          gpg-enabled: true
+          gpg-key-id: ${{ secrets.FREE_NOW_GPG_KEY_ID }}
+          gpg-key: ${{ secrets.FREE_NOW_GPG_KEY }}
+          gpg-passphrase: ${{ secrets.FREE_NOW_GPG_PASSPHRASE }}
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
+
+      - name: Github Release
+        if: steps.changes.outputs.src == 'true'
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
+          automatic_release_tag: latest
+          prerelease: false
+          files: |
+            LICENSE
+            *.jar
