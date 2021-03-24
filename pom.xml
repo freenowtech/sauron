@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>sauron</artifactId>
+    <groupId>com.free-now.sauron</groupId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <description>Sauron, the all seeing eye!</description>
+
+    <url>https://github.com/freenowtech/sauron</url>
+
+    <licenses>
+        <license>
+            <name>Apache License Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Sergio Santiago</name>
+            <email>sergio.a.santiago@gmail.com</email>
+        </developer>
+    </developers>
+
+    <modules>
+        <module>sauron-core</module>
+    </modules>
+</project>
