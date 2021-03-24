@@ -26,5 +26,6 @@
 
     <modules>
         <module>sauron-core</module>
+        <module>plugins/console-output</module>
     </modules>
 </project>
