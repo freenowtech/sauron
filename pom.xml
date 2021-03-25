@@ -30,5 +30,6 @@
         <module>plugins/data-sanitizer</module>
         <module>plugins/git-checkout</module>
         <module>plugins/elasticsearch-output</module>
+        <module>plugins/dependency-checker</module>
     </modules>
 </project>
