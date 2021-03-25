@@ -1,15 +1,13 @@
 name: Maven Release
 
 on:
-  workflow_run:
-    workflows: ["Build"]
-    branches: [main]
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 jobs:
   list-projects:
-    if: "${{ github.event.workflow_run.conclusion == 'success' && !contains(github.event.head_commit.message, '[ci skip]') }}"
+    if: "${{ !contains(github.event.head_commit.message, '[ci skip]') }}"
 
     runs-on: ubuntu-latest
     outputs:
@@ -72,3 +70,13 @@ jobs:
           gpg-passphrase: ${{ secrets.FREE_NOW_GPG_PASSPHRASE }}
         env:
           JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
+
+      - name: Github Release
+        uses: marvinpinto/action-automatic-releases@v1.1.0
+        with:
+          repo_token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
+          prerelease: false
+          automatic_release_tag: latest
+          files: |
+            LICENSE
+            **/*.jar
