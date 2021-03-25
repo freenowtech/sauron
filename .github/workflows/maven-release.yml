@@ -80,4 +80,7 @@ jobs:
           automatic_release_tag: latest
           files: |
             LICENSE
-            **/*.jar
+            **/*.pom?(.)*
+            **/*[0-9].jar?(.)*
+            **/*-sources.jar?(.)*
+            **/*-javadoc.jar?(.)*
