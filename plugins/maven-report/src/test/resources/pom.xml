@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.test</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <groupId>service</groupId>
+    <artifactId>com.test</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <description>POM file used for testing purposes</description>
+
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <version>1.3.50</version>
+        </dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <scope>provided</scope>
+            <version>2.1.2.RELEASE</version>
+        </dependency>
+    </dependencies>
+</project>
