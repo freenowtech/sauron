@@ -32,5 +32,6 @@
         <module>plugins/elasticsearch-output</module>
         <module>plugins/dependency-checker</module>
         <module>plugins/dependencytrack-publisher</module>
+        <module>plugins/protocw-checker</module>
     </modules>
 </project>
