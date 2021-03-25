@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "test"
+description = "test"
+authors = ["Sauron"]
+readme = "README.md"
+version = "0.1.0"
+
+[[tool.poetry.source]]
+name = "freenow_artifactory"
+url = "https://repos.mytaxi.com/artifactory/api/pypi/pypi/simple"
+
+
+[tool.poetry.dependencies]
+# is always installed
+python = "^3.7.0"
+# >1.0.0 for to_parquet
+pandas = "^1.0.0"
+sklearn = "*"
+numpy = "*"
+scipy = "*"
+mlflow = "*"
+boto3 = "*"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.0.1"
+pytest-cov = "^2.7"
+cobertura-clover-transform = "^1.1.4"
+black = "19.3b0"
+pre-commit = "^1.18"
+jupyterlab = "*"
+
+[tool.black]
+line-length = 79
+
+[build-system]
+requires = ["poetry>=1.0.9"]
+build-backend = "poetry.masonry.api"
