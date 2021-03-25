@@ -4,7 +4,7 @@
 
     <artifactId>sauron-core</artifactId>
     <groupId>com.free-now.sauron</groupId>
-    <version>0.0.15-SNAPSHOT</version>
+    <version>0.0.15</version>
     <name>Sauron Core</name>
     <description>Sauron Core Library</description>
 
@@ -38,7 +38,7 @@
     </properties>
 
     <scm>
-        <tag>HEAD</tag>
+        <tag>sauron-core-0.0.15</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
