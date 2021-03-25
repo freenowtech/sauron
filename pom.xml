@@ -27,5 +27,6 @@
     <modules>
         <module>sauron-core</module>
         <module>plugins/console-output</module>
+        <module>plugins/data-sanitizer</module>
     </modules>
 </project>
