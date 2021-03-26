@@ -39,5 +39,6 @@
         <module>plugins/sonarapi-report</module>
         <module>plugins/thanosapi-report</module>
         <module>plugins/readme-checker</module>
+        <module>plugins/bcrypt-passwordencoder-checker</module>
     </modules>
 </project>
