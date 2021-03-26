@@ -37,5 +37,6 @@
         <module>plugins/logs-report</module>
         <module>plugins/kubernetesapi-report</module>
         <module>plugins/sonarapi-report</module>
+        <module>plugins/thanosapi-report</module>
     </modules>
 </project>
