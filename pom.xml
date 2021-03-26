@@ -32,6 +32,8 @@
         <module>plugins/elasticsearch-output</module>
         <module>plugins/dependency-checker</module>
         <module>plugins/dependencytrack-publisher</module>
+        <module>plugins/maven-report</module>
         <module>plugins/protocw-checker</module>
+        <module>plugins/logs-report</module>
     </modules>
 </project>
