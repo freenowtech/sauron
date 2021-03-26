@@ -36,5 +36,6 @@
         <module>plugins/protocw-checker</module>
         <module>plugins/logs-report</module>
         <module>plugins/kubernetesapi-report</module>
+        <module>plugins/sonarapi-report</module>
     </modules>
 </project>
