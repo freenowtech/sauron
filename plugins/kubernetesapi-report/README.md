@@ -4,7 +4,7 @@
 
 This plugin allows Sauron to query Kubernetes api and retrieve the annotations and labels assigned
 to the resources specified in the configuration and dump the value to the 
-[DataSet](https://stash.intapps.it/projects/SAUR/repos/sauron-core/browse/src/main/java/com/freenow/sauron/model/DataSet.java).
+[DataSet](https://github.com/freenowtech/sauron/blob/main/core/src/main/java/com/freenow/sauron/model/DataSet.java).
 
 ## Configuration
 
@@ -24,7 +24,7 @@ sauron.plugins:
 ```
 
 The possible selectors can be found in
-[KubernetesResources](https://stash.intapps.it/projects/SAUR/repos/kubernetesapi-report/browse/src/main/java/com/freenow/sauron/plugins/KubernetesResources.java).
+[KubernetesResources](https://github.com/freenowtech/sauron/blob/main/plugins/kubernetesapi-report/src/main/java/com/freenow/sauron/plugins/KubernetesResources.java#L5).
 
 ## Input
 
