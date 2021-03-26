@@ -38,5 +38,6 @@
         <module>plugins/kubernetesapi-report</module>
         <module>plugins/sonarapi-report</module>
         <module>plugins/thanosapi-report</module>
+        <module>plugins/readme-checker</module>
     </modules>
 </project>
