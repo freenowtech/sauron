@@ -6,7 +6,7 @@
     <groupId>com.free-now.sauron.plugins</groupId>
     <name>Sauron Sonar Api Report</name>
     <description>Sauron SonarApiReport Plugin</description>
-    <version>0.0.4</version>
+    <version>0.0.5-SNAPSHOT</version>
 
     <url>https://github.com/freenowtech/sauron</url>
 
@@ -39,7 +39,7 @@
     </properties>
 
     <scm>
-        <tag>sonarapi-report-0.0.4</tag>
+        <tag>HEAD</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
