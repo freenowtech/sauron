@@ -2,10 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>thanosapi-report</artifactId>
+    <artifactId>bcrypt-passwordencoder-checker</artifactId>
     <groupId>com.free-now.sauron.plugins</groupId>
-    <name>Sauron Thanos Api Report</name>
-    <description>Sauron ThanosApiReport Plugin</description>
+    <name>Sauron Bcrypt Password Encoder Checker</name>
+    <description>Sauron Bcrypt Password Encoder Checker Plugin</description>
     <version>0.0.2-SNAPSHOT</version>
 
     <url>https://github.com/freenowtech/sauron</url>
@@ -25,13 +25,15 @@
     </developers>
 
     <properties>
-        <plugin.id>thanosapi-report</plugin.id>
+        <plugin.id>bcrypt-passwordencoder-checker</plugin.id>
         <plugin.class>com.freenow.sauron.plugins.SauronPlugin</plugin.class>
         <plugin.provider>freenow</plugin.provider>
         <plugin.dependencies />
-        <spring.version>5.3.1</spring.version>
-        <jackson.version>2.11.2</jackson.version>
-        <json-path.version>2.4.0</json-path.version>
+        <spock-core.version>1.3-groovy-2.4</spock-core.version>
+        <spock-reports.version>1.6.0</spock-reports.version>
+        <groovy-all.version>2.5.2</groovy-all.version>
+        <spock-subjects-collaborators-extension.version>1.2.2</spock-subjects-collaborators-extension.version>
+        <gmavenplus-plugin.version>1.5</gmavenplus-plugin.version>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
@@ -56,65 +58,12 @@
         </repository>
     </distributionManagement>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>${jackson.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>com.free-now.sauron</groupId>
             <artifactId>sauron-core</artifactId>
-            <version>0.0.15</version>
+            <version>0.0.11</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-expression</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>${json-path.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>*</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.8</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jackson-databind</artifactId>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -123,16 +72,62 @@
             <version>4.12</version>
         </dependency>
 
+        <!-- Test -->
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.25.1</version>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <version>${spock-core.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.blogspot.toomuchcoding</groupId>
+            <artifactId>spock-subjects-collaborators-extension</artifactId>
+            <version>${spock-subjects-collaborators-extension.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.athaydes</groupId>
+            <artifactId>spock-reports</artifactId>
+            <version>${spock-reports.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
     </dependencies>
 
     <build>
+        <testSourceDirectory>${project.basedir}/src/test/groovy</testSourceDirectory>
+
         <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                    <threadCount>1</threadCount>
+                    <parallel>classes</parallel>
+                    <includes>
+                        <include>**/*Spec.java</include>
+                        <include>**/*Spec.groovy</include>
+                        <include>**/*Test.java</include>
+                    </includes>
+                    <systemProperties>
+                        <property>
+                            <name>com.athaydes.spockframework.report.outputDir</name>
+                            <value>target/spock-reports</value>
+                        </property>
+                    </systemProperties>
+                    <argLine />
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.1</version>
@@ -162,6 +157,21 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>${gmavenplus-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
 
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
@@ -204,10 +214,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.2.0</version>
-                <configuration>
-                    <source>8</source>
-                    <detectJavaApiLink>false</detectJavaApiLink>
-                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
