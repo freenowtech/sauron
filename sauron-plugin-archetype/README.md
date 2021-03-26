@@ -7,4 +7,4 @@ that provides a model to create a new sauron plugin.
 
 ### Usage
 
-For how to use, refer to [Sauron Service README](https://stash.intapps.it/projects/SAUR/repos/sauron-service).
+For how to use, refer to [Sauron Service README](https://github.com/freenowtech/sauron/tree/main/sauron-service).

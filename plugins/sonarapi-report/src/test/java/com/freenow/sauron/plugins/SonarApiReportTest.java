@@ -53,7 +53,7 @@ public class SonarApiReportTest
         final DataSet dataSet = new DataSet();
         dataSet.setServiceName("oauthservice");
         final Map<String, Object> properties = new HashMap();
-        properties.put("baseUrl", "https://sonar.intapps.it");
+        properties.put("baseUrl", "https://sonar.localhost.com");
         properties.put("accessToken", "dummyToken");
         Map fieldMap = new HashMap();
         fieldMap.put("uri", "/api/measures/component?component=?&metricKeys=coverage");
