@@ -36,7 +36,7 @@ logs-report:
 ## Input
 
 Mandatory input keys in
-[DataSet](https://stash.intapps.it/projects/SAUR/repos/sauron-core/browse/src/main/java/com/freenow/sauron/model/DataSet.java)
+[DataSet](https://github.com/freenowtech/sauron/blob/main/core/src/main/java/com/freenow/sauron/model/DataSet.java)
 object required by this plugin:
 
 - `serviceName:` The service name. It will be used as filter (@source) on elasticsearch.
@@ -46,7 +46,7 @@ object required by this plugin:
 ## Output
 
 The output key that is produced in
-[DataSet](https://stash.intapps.it/projects/SAUR/repos/sauron-core/browse/src/main/java/com/freenow/sauron/model/DataSet.java)
+[DataSet](https://github.com/freenowtech/sauron/blob/main/core/src/main/java/com/freenow/sauron/model/DataSet.java)
 object.
 
 - `hasLogs: true/false` If the service has logs in one of those indexes `true` otherwise `false`.

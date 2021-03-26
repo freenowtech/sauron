@@ -35,5 +35,6 @@
         <module>plugins/maven-report</module>
         <module>plugins/protocw-checker</module>
         <module>plugins/logs-report</module>
+        <module>plugins/kubernetesapi-report</module>
     </modules>
 </project>
