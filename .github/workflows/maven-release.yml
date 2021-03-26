@@ -70,17 +70,3 @@ jobs:
           gpg-passphrase: ${{ secrets.FREE_NOW_GPG_PASSPHRASE }}
         env:
           JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
-
-      - name: Github Release
-        if: steps.changes.outputs.src == 'true'
-        uses: marvinpinto/action-automatic-releases@v1.1.0
-        with:
-          repo_token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
-          prerelease: false
-          automatic_release_tag: latest
-          files: |
-            LICENSE
-            ${{ matrix.path }}target/*.pom?(.)*
-            ${{ matrix.path }}target/*[0-9].jar?(.)*
-            ${{ matrix.path }}target/*-sources.jar?(.)*
-            ${{ matrix.path }}target/*-javadoc.jar?(.)*
