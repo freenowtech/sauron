@@ -29,6 +29,10 @@
             <directory />
             <includes>
                 <include>README.md</include>
+                <include>CONTRIBUTING.md</include>
+                <include>LICENSE</include>
+                <include>MAINTAINERS</include>
+                <include>SECURITY.md</include>
                 <include>.gitignore</include>
             </includes>
         </fileSet>
