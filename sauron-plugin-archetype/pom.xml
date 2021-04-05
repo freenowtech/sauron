@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>sauron-plugin-archetype</artifactId>
-    <groupId>com.freenow.sauron</groupId>
+    <groupId>com.free-now.sauron</groupId>
     <name>Sauron Plugin Archetype</name>
     <description>Sauron Plugin Archetype</description>
     <packaging>maven-archetype</packaging>

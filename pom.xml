@@ -27,6 +27,7 @@
     <modules>
         <module>sauron-core</module>
         <module>sauron-plugin-archetype</module>
+        <module>sauron-service</module>
         <module>plugins/console-output</module>
         <module>plugins/data-sanitizer</module>
         <module>plugins/git-checkout</module>

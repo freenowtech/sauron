@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="10 seconds">
+    <property name="serviceName" value="sauronservice"/>
+    <property name="mytPattern"
+              value="%date{ISO8601} | %-16thread | %-5level{5} | %-150message | %-35(%logger{0}:%-5L) | %mdc%n%exception{full}"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <pattern><![CDATA[${mytPattern}}]]></pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

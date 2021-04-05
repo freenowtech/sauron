@@ -1,0 +1,35 @@
+schemaVersion: 2.0.0
+commandTests:
+  - name: Installs OpenJDK 11
+    command: "/usr/bin/java"
+    args: ["-version"]
+    expectedError:
+      - "Picked up JAVA_TOOL_OPTIONS.*\n"
+      - "openjdk version \"11\\.[0-9.]+\".*\n"
+      - "OpenJDK Runtime Environment.*\n"
+
+  - name: Checking whether the required packages have been installed
+    command: /usr/bin/apt
+    args: ["list", "--installed"]
+    expectedOutput:
+      - \ncurl/.*
+      - \nbash/.*
+      - \nmaven/.*
+      - \ngit/.*
+      - \nprocps/.*
+      - \nssh/.*
+      - \nnodejs/.*
+      - \napt-utils/.*
+
+fileExistenceTests:
+  - name: Copies the entrypoint
+    path: /usr/local/bin/entrypoint
+    shouldExist: true
+    permissions: -rwxr-xr-x
+
+metadataTest:
+  env:
+    - key: JAVA_HOME
+      value: /usr/local/openjdk-11
+    - key: JMXTRANS_VERSION
+      value: 1.2.8

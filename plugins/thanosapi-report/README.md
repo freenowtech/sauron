@@ -33,7 +33,7 @@ The plugin replaces below parameters from the query:
 
 ```
 thanosapi-report:
-    baseUrl: https://thanos.mgmt.mytaxi.com
+    baseUrl: https://thanos.localhost.com
     api:
         request-per-minute: 
             query: sum(skipper:service_backend_requests_by_statuscode:1m{environment="$environment",service_name=~"$serviceName"})*60

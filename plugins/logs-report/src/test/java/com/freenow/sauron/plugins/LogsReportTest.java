@@ -32,8 +32,8 @@ public class LogsReportTest
         "{SERVICENAME}\"}}]," +
         "\"filter\":[{\"range\":{\"@timestamp\":{\"format\":\"basic_date_time\",\"gte\":\"now-10m\",\"lt\":\"now\"}}}]}}}";
 
-    private static final String FILEBEAT_PAYLOAD = "{\"query\":{\"bool\":{\"filter\":[{\"match_phrase\":{\"mytaxi.environment\":{\"query\":\" {ENVIRONMENT}\"}}}," +
-        "{\"match_phrase\":{\"mytaxi.service.name\":{\"query\":\"{SERVICENAME}\"}}},{\"range\":{\"@timestamp\":{\"format\":\"basic_date_time\",\"gte\":\"now-10m\",\"lt\":\"now\"}}}]}}}";
+    private static final String FILEBEAT_PAYLOAD = "{\"query\":{\"bool\":{\"filter\":[{\"match_phrase\":{\"environment\":{\"query\":\" {ENVIRONMENT}\"}}}," +
+        "{\"match_phrase\":{\"service.name\":{\"query\":\"{SERVICENAME}\"}}},{\"range\":{\"@timestamp\":{\"format\":\"basic_date_time\",\"gte\":\"now-10m\",\"lt\":\"now\"}}}]}}}";
 
     public static final String NO_LOGS_FOUND = "{ \"took\": 146, \"hits\": { \"total\": { \"value\": 0 } } }";
 
@@ -101,7 +101,7 @@ public class LogsReportTest
         PluginsConfigurationProperties pluginsConfigurationProperties = new PluginsConfigurationProperties();
         Map<String, Object> pluginProperties = new LinkedHashMap<>();
 
-        pluginProperties.put("url", "https://elasticsearch-logs.mgmt.free-now.com/%s/_search?filter_path=took,hits.total.value");
+        pluginProperties.put("url", "https://elasticsearch-logs.localhost.com/%s/_search?filter_path=took,hits.total.value");
         pluginProperties.put("user", "my-user");
         pluginProperties.put("password", "my-user");
 
