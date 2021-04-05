@@ -58,7 +58,7 @@ jobs:
           maven-args: "-DskipTests -DskipITs"
           git-release-bot-name: "free-now-github"
           git-release-bot-email: "70742378+free-now-github@users.noreply.github.com"
-          git-skip-sanity-check: true
+          git-skip-sanity-check: ""
           ssh-private-key: ${{ secrets.FREE_NOW_GITHUB_PRIVATE_KEY }}
           maven-project-folder: ${{ matrix.path }}
           maven-repo-server-id: ossrh
