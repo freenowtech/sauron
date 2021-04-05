@@ -1,0 +1,164 @@
+#################################################################
+# Debug log level to pipeline service
+#################################################################
+logging:
+  level:
+    com:
+      freenow:
+        sauron:
+          service:
+            PipelineService: DEBUG
+
+#################################################################
+# Expose health and prometheus endpoints from actuator
+# Disable Spring Binders healthcheck indicator
+#################################################################
+management:
+  health:
+    binders:
+      enabled: false
+  endpoints:
+    web:
+      base-path: /common
+      exposure:
+        include: health,prometheus
+
+
+#################################################################
+# Disable spring configserver healthcheck indicator
+#################################################################
+#health:
+#  config:
+#    enabled: false
+
+
+#################################################################
+# Spring configuration
+#################################################################
+spring:
+  #################################################################
+  # SpringConfigBus configuration
+  # Rabbitmq used to enable hot reloading of your configuration[1]
+  # Comment the block below and uncomment rabbitmq configuration
+  # to enable SpringConfigBus
+  #
+  # [1] https://www.baeldung.com/spring-cloud-bus
+  #################################################################
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+  cloud:
+    stream:
+      default:
+        consumer:
+          autoStartup: false
+#  rabbitmq:
+#    requested-heartbeat: 5
+#    host: configbus.hostname
+#    port: 5672
+#    username: sauron-service
+#    password: iamasecret
+
+     #################################################################
+     # Sauron Rabbitmq Request Handler
+     # The default async request handler is SpringEvents. If the enabled
+     # flag is set to true, Sauron will use RabbitmqRequestHandler
+     # instead, which will use Rabbitmq queue to do async processing.
+     # For details check RabbitmqRequestHandler[1]
+     #
+     # [1] src/main/java/com/freenow/sauron/handler/impl/RabbitmqRequestHandler.java
+     #################################################################
+#    enabled: true
+  #################################################################
+  # When using Sauron Request Handler another Rabbitmq host can be used,
+  # different from the SpringConfigBus. In order to allow that, Sauron
+  # make usage of freenowtech/spring-multirabbit [1]
+  #
+  # [1] https://github.com/freenowtech/spring-multirabbit
+  #################################################################
+#  multirabbitmq:
+#    connections:
+#      eventBus:
+#        host: eventsbus.hostname
+#        port: 5672
+#        username: sauron-service
+#        password: iamasecret
+
+#################################################################
+# Sauron configuration
+#################################################################
+sauron:
+  #################################################################
+  # Enable plugins synchronization from artifactory
+  # Setting it as enabled, will configure Sauron to synch the
+  # local plugin repository each 5 minutes
+  # If it is not enabled, it will use local repository
+  # e.g: /sauron/plugins and read the plugins information from
+  # plugins.json[1]
+  #
+  # [1] https://github.com/pf4j/pf4j-update#repository-structure
+  #################################################################
+#  artifactory:
+#    enabled: true
+#    url: https://artifactory.hostname
+#    repository: internal
+#    username: sauron-service
+#    groupId: com/freenow/sauron/plugins
+#    password: iamasecret
+  #################################################################
+  # Sauron Plugins specific configuration
+  #################################################################
+  plugins:
+    elasticsearch-output:
+      elasticsearch:
+        host: elasticsearch
+        port: 9200
+        scheme: http
+    maven-report:
+      direct-dependency-check:
+        is_kotlin: org.jetbrains.kotlin:kotlin-stdlib
+        uses_embedded_tomcat: org.springframework.boot:spring-boot-starter-tomcat:provided
+      advanced-search-check:
+        packaging: /project/packaging
+        parentGroupId: /project/parent/groupId
+        parentArtifactId: /project/parent/artifactId
+        parentVersion: /project/parent/version
+        parentRelativePath: /project/parent/relativePath
+        javaVersion: /project/properties/jdk.version|/project/properties/java.version|/project/properties/maven.compiler.target
+    dependency-checker:
+      elasticsearch:
+        host: elasticsearch
+        port: 9200
+        scheme: http
+    #################################################################
+    # GitCheckout plugin configuration
+    # If specified, these keys will be used in order to checkout the
+    # source code repository. Otherwise local ~/.ssh
+    #################################################################
+#    git-checkout:
+#      publicKey: <your_public_key>
+#      privateKey: <your_private_key>
+    #################################################################
+    # Publish the bom.xml generated using CycloneDX[1] format to
+    # a local installation of dependency-track[2]
+    #
+    # [1] https://cyclonedx.org/
+    # [2] https://dependencytrack.org/
+    #################################################################
+#    dependencytrack-publisher:
+#      uri: http://dependency-track:8080
+#      api-key: iamasecret
+  #################################################################
+  # Sauron Pipeline Configuration
+  #################################################################
+  pipelines:
+    default:
+      - console-output
+      - data-sanitizer
+      - git-checkout
+      - readme-checker
+      - protocw-checker
+      - maven-report
+      - dependency-checker
+      - dependencytrack-publisher
+      - console-output
+      - elasticsearch-output

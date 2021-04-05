@@ -21,7 +21,7 @@ payload (default last 10min).
 
 ```
 logs-report:
-  url: https://elasticsearch-logs.mgmt.free-now.com:443/{index-name}/_search
+  url: https://elasticsearch-logs.localhost.com:443/{index-name}/_search
   user: "kibana"
   password: "xxxx"
   indexes:
@@ -30,7 +30,7 @@ logs-report:
       payload: "{"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true,"query":"@tags: {ENVIRONMENT} AND @source: {SERVICENAME}"}}],"filter":[{"range":{"@timestamp":{"format":"basic_date_time","gte":"now-10m","lt":"now"}}}]}}}" 
     -
       name: "filebeat-*"
-      payload: "{"query":{"bool":{"filter":[{"match_phrase":{"mytaxi.environment":{"query":"{ENVIRONMENT}"}}},{"match_phrase":{"mytaxi.service.name":{"query":"{SERVICENAME}"}}},{"range":{"@timestamp":{"format":"basic_date_time","gte":"now-10m","lt":"now"}}}]}}}"    
+      payload: "{"query":{"bool":{"filter":[{"match_phrase":{"environment":{"query":"{ENVIRONMENT}"}}},{"match_phrase":{"service.name":{"query":"{SERVICENAME}"}}},{"range":{"@timestamp":{"format":"basic_date_time","gte":"now-10m","lt":"now"}}}]}}}"    
 ```
 
 ## Input

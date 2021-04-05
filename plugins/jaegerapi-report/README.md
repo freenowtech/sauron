@@ -22,7 +22,7 @@ In case of SpEL, You can still use the JsonPath as a part of the SpEL by using `
 
 ```
 jaegerapi-report:
-    baseUrl: https://jaegerui.mgmt.mytaxi.com
+    baseUrl: https://jaegerui.localhost.com
     api:
         services-operations: 
             uri: /api/services/{serviceName}/operations

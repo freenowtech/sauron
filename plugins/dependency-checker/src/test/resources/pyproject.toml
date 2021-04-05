@@ -5,10 +5,6 @@ authors = ["Sauron"]
 readme = "README.md"
 version = "0.1.0"
 
-[[tool.poetry.source]]
-name = "freenow_artifactory"
-url = "https://repos.mytaxi.com/artifactory/api/pypi/pypi/simple"
-
 
 [tool.poetry.dependencies]
 # is always installed

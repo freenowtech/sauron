@@ -48,7 +48,7 @@ public class ThanosApiReportTest
         dataSet.setServiceName("oauthservice");
         dataSet.setAdditionalInformation("environment", "live");
         final Map<String, Object> properties = new HashMap();
-        properties.put("baseUrl", "https://thanos.mgmt.mytaxi.com");
+        properties.put("baseUrl", "https://thanos.localhost.com");
         Map fieldMap = new HashMap();
         fieldMap.put("query", "sum(skipper:service_backend_requests_by_statuscode:1m{environment='$environment',service_name=~'$serviceName'})*60");
         fieldMap.put("fields", Collections.singletonMap("rpm", "$.data.result[0].value[1]"));
@@ -75,7 +75,7 @@ public class ThanosApiReportTest
         dataSet.setServiceName("oauthservice");
         dataSet.setAdditionalInformation("environment", "live");
         final Map<String, Object> properties = new HashMap();
-        properties.put("baseUrl", "https://thanos.mgmt.mytaxi.com");
+        properties.put("baseUrl", "https://thanos.localhost.com");
         Map fieldMap = new HashMap();
         fieldMap.put("query", "sum(skipper:service_backend_requests_by_statuscode:1m{environment='$environment',service_name=~'$serviceName'})*60");
         fieldMap.put("fields", Collections.singletonMap("rpm", "$.data.result[0].value[1]"));

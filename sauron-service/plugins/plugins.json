@@ -1,0 +1,167 @@
+[
+  {
+    "id": "jaegerapi-report",
+    "description": "jaegerapi-report",
+    "releases": [
+      {
+        "version": "0.0.3",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/jaegerapi-report/0.0.3/jaegerapi-report-0.0.3.jar"
+      }
+    ]
+  },
+  {
+    "id": "sonarapi-report",
+    "description": "sonarapi-report",
+    "releases": [
+      {
+        "version": "0.0.4",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/sonarapi-report/0.0.4/sonarapi-report-0.0.4.jar"
+      }
+    ]
+  },
+  {
+    "id": "kubernetesapi-report",
+    "description": "kubernetesapi-report",
+    "releases": [
+      {
+        "version": "0.0.4",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/kubernetesapi-report/0.0.4/kubernetesapi-report-0.0.4.jar"
+      }
+    ]
+  },
+  {
+    "id": "thanosapi-report",
+    "description": "thanosapi-report",
+    "releases": [
+      {
+        "version": "0.0.2",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/thanosapi-report/0.0.2/thanosapi-report-0.0.2.jar"
+      }
+    ]
+  },
+  {
+    "id": "bcrypt-passwordencoder-checker",
+    "description": "bcrypt-passwordencoder-checker",
+    "releases": [
+      {
+        "version": "0.0.2",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/bcrypt-passwordencoder-checker/0.0.2/bcrypt-passwordencoder-checker-0.0.2.jar"
+      }
+    ]
+  },
+  {
+    "id": "readme-checker",
+    "description": "readme-checker",
+    "releases": [
+      {
+        "version": "0.0.7",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/readme-checker/0.0.7/readme-checker-0.0.7.jar"
+      }
+    ]
+  },
+  {
+    "id": "logs-report",
+    "description": "logs-report",
+    "releases": [
+      {
+        "version": "0.0.3",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/logs-report/0.0.3/logs-report-0.0.3.jar"
+      }
+    ]
+  },
+  {
+    "id": "maven-report",
+    "description": "maven-report",
+    "releases": [
+      {
+        "version": "0.0.20",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/maven-report/0.0.20/maven-report-0.0.20.jar"
+      }
+    ]
+  },
+  {
+    "id": "dependency-checker",
+    "description": "dependency-checker",
+    "releases": [
+      {
+        "version": "0.0.32",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/dependency-checker/0.0.32/dependency-checker-0.0.32.jar"
+      }
+    ]
+  },
+  {
+    "id": "dependencytrack-publisher",
+    "description": "dependencytrack-publisher",
+    "releases": [
+      {
+        "version": "0.0.17",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/dependencytrack-publisher/0.0.17/dependencytrack-publisher-0.0.17.jar"
+      }
+    ]
+  },
+  {
+    "id": "git-checkout",
+    "description": "git-checkout",
+    "releases": [
+      {
+        "version": "0.0.14",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/git-checkout/0.0.14/git-checkout-0.0.14.jar"
+      }
+    ]
+  },
+  {
+    "id": "elasticsearch-output",
+    "description": "elasticsearch-output",
+    "releases": [
+      {
+        "version": "0.0.18",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/elasticsearch-output/0.0.18/elasticsearch-output-0.0.18.jar"
+      }
+    ]
+  },
+  {
+    "id": "data-sanitizer",
+    "description": "data-sanitizer",
+    "releases": [
+      {
+        "version": "0.0.12",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/data-sanitizer/0.0.12/data-sanitizer-0.0.12.jar"
+      }
+    ]
+  },
+  {
+    "id": "console-output",
+    "description": "console output",
+    "releases": [
+      {
+        "version": "0.0.10",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/console-output/0.0.10/console-output-0.0.10.jar"
+      }
+    ]
+  },
+  {
+    "id": "protocw-checker",
+    "description": "protocw-checker",
+    "releases": [
+      {
+        "version": "0.0.7",
+        "date": "2021-03-29T10:23:51Z",
+        "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/protocw-checker/0.0.7/protocw-checker-0.0.7.jar"
+      }
+    ]
+  }
+]

@@ -1,6 +1,6 @@
-package com.mytaxi.prioritydriverservice.config.security;
+package com.freenow.prioritydriverservice.config.security;
 
-import com.mytaxi.security.basicauth.ProtoBasicAuthentificationEntryPoint;
+import com.free-now.security.basicauth.ProtoBasicAuthentificationEntryPoint;
 import java.util.LinkedHashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -65,7 +65,7 @@ public class AuthenticationConfig extends GlobalAuthenticationConfigurerAdapter
     public ProtoBasicAuthentificationEntryPoint protoBasicAuthenticationEntryPoint()
     {
         final var entryPoint = new ProtoBasicAuthentificationEntryPoint();
-        entryPoint.setRealmName("mytaxi " + applicationName);
+        entryPoint.setRealmName("freenow " + applicationName);
         return entryPoint;
     }
 
@@ -74,7 +74,7 @@ public class AuthenticationConfig extends GlobalAuthenticationConfigurerAdapter
     public BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
     {
         final var entryPoint = new BasicAuthenticationEntryPoint();
-        entryPoint.setRealmName("mytaxi " + applicationName);
+        entryPoint.setRealmName("freenow " + applicationName);
         return entryPoint;
     }
 }

@@ -27,7 +27,7 @@
     <properties>
         <plugin.id>dependencytrack-publisher</plugin.id>
         <plugin.class>com.freenow.sauron.plugins.SauronPlugin</plugin.class>
-        <plugin.provider>mytaxi</plugin.provider>
+        <plugin.provider>freenow</plugin.provider>
         <plugin.dependencies />
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
