@@ -7,7 +7,7 @@ on:
 
 jobs:
   list-projects:
-    if: "${{ !contains(github.event.head_commit.message, '[ci skip]') }}"
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
 
     runs-on: ubuntu-latest
     outputs:
@@ -74,6 +74,7 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
 
       - name: Get previous tag
+        if: steps.changes.outputs.src == 'true'
         id: previoustag
         uses: WyriHaximus/github-action-get-previous-tag@v1.0.1
 
