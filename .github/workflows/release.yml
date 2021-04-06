@@ -82,6 +82,7 @@ jobs:
       - name: Github Release
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
         uses: marvinpinto/action-automatic-releases@v1.1.1
+        continue-on-error: true
         with:
           repo_token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
           prerelease: false
@@ -97,6 +98,7 @@ jobs:
       - name: Publish to Registry
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
         uses: elgohr/Publish-Docker-Github-Action@3.02
+        continue-on-error: true
         with:
           name: freenow/sauron
           username: ${{ secrets.FREE_NOW_DOCKER_HUB_USER }}
