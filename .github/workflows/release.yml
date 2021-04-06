@@ -3,7 +3,7 @@ name: Maven Release
 on:
   push:
     branches:
-      - main
+      - "*"
 
 jobs:
   list-projects:
@@ -43,6 +43,8 @@ jobs:
         id: changes
         with:
           filters: |
+            sauron-service:
+              - 'sauron-service/**'
             src:
               - '${{ matrix.path }}**'
 
@@ -70,3 +72,33 @@ jobs:
           gpg-passphrase: ${{ secrets.FREE_NOW_GPG_PASSPHRASE }}
         env:
           JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
+
+      - name: Get previous tag
+        if: steps.changes.outputs.src == 'true'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+      - name: Github Release
+        if: steps.changes.outputs.sauron-service == 'true'
+        uses: marvinpinto/action-automatic-releases@v1.1.0
+        with:
+          repo_token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
+          prerelease: false
+          automatic_release_tag: ${{ steps.previoustag.outputs.tag }}
+          files: |
+            LICENSE
+            SECURITY.md
+            sauron-service/target/${{ steps.previoustag.outputs.tag }}.pom?(.)*
+            sauron-service/target/${{ steps.previoustag.outputs.tag }}.jar?(.)*
+            sauron-service/target/${{ steps.previoustag.outputs.tag }}-sources.jar?(.)*
+            sauron-service/target/${{ steps.previoustag.outputs.tag }}-javadoc.jar?(.)*
+
+      - name: Publish to Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: freenow/sauron
+          username: ${{ secrets.FREE_NOW_DOCKER_HUB_USER }}
+          password: ${{ secrets.FREE_NOW_DOCKER_HUB_TOKEN }}
+          default_branch: main
+          workdir: sauron-service/
+
