@@ -54,6 +54,7 @@ jobs:
       - name: Maven release and publish
         if: steps.changes.outputs.src == 'true'
         uses: qcastel/github-actions-maven-release@v1.12.16
+        continue-on-error: true
         with:
           access-token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
           release-branch-name: "main"
