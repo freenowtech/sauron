@@ -74,7 +74,6 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
 
       - name: Get previous tag
-        if: steps.changes.outputs.src == 'true'
         id: previoustag
         uses: WyriHaximus/github-action-get-previous-tag@v1.0.1
 
