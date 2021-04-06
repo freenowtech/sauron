@@ -18,7 +18,7 @@ jobs:
 
       - name: List Plugins
         id: list-plugins
-        run: echo "::set-output name=paths::$(ls -d plugins/*/ |  jq -R -s -c 'split("\n")[:-1] | .+ ["sauron-core/", "sauron-plugin-archetype/", "sauron-service/"]')"
+        run: echo "::set-output name=paths::$(ls -d plugins/*/ |  jq -R -s -c 'split("\n")[:-1] | ["sauron-service/", "sauron-plugin-archetype/", "sauron-core/"] +.'"
 
   package-and-publish:
     needs: list-projects

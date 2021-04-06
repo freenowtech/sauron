@@ -1,7 +1,7 @@
 # SAURON - VERSION AND DEPLOYMENT TRACKER
 
 [![Build](https://github.com/freenowtech/sauron/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/freenowtech/sauron/actions/workflows/build.yml)
-[![Release](https://github.com/freenowtech/sauron/actions/workflows/maven-release.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/release.yml)
+[![Release](https://github.com/freenowtech/sauron/actions/workflows/release.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/release.yml)
 
 <p align="center" style="background-color:black;">
   <img src="https://steamuserimages-a.akamaihd.net/ugc/541883619699450274/D25F66426956C58E110013352AE49102BD01BCE2/" />
