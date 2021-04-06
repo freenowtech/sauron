@@ -1,4 +1,4 @@
-# SAURON SERVICE - VERSION AND DEPLOYMENT TRACKER
+# SAURON - VERSION AND DEPLOYMENT TRACKER
 
 [![Build](https://github.com/freenowtech/sauron/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/freenowtech/sauron/actions/workflows/build.yml)
 [![Maven Release](https://github.com/freenowtech/sauron/actions/workflows/maven-release.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/maven-release.yml)
