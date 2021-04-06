@@ -25,7 +25,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        path: ${{ fromJSON(needs.list-projects.outputs.paths) }}
+        path: ["sauron-service/"]
 
     runs-on: ubuntu-latest
 
@@ -76,7 +76,7 @@ jobs:
       - name: Get previous tag
         if: steps.changes.outputs.src == 'true'
         id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        uses: WyriHaximus/github-action-get-previous-tag@v1.0.1
 
       - name: Github Release
         if: steps.changes.outputs.sauron-service == 'true'
@@ -95,7 +95,7 @@ jobs:
 
       - name: Publish to Registry
         if: steps.changes.outputs.sauron-service == 'true'
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@3.02
         with:
           name: freenow/sauron
           username: ${{ secrets.FREE_NOW_DOCKER_HUB_USER }}
