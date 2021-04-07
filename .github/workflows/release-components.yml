@@ -37,6 +37,13 @@ jobs:
       - name: Update local git repository. It is needed because other jobs might have released a new version
         run: git pull
 
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: Maven release and publish
         if: steps.changes.outputs.src == 'true'
         uses: qcastel/github-actions-maven-release@v1.12.16
@@ -84,7 +91,7 @@ jobs:
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
         uses: elgohr/Publish-Docker-Github-Action@3.02
         with:
-          name: freenow/sauron/
+          name: freenowtech/sauron/sauron-service
           username: ${{ secrets.FREE_NOW_GITHUB_USER }}
           password: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
           default_branch: main

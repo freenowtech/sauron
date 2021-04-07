@@ -51,6 +51,13 @@ jobs:
       - name: Update local git repository. It is needed because other jobs might have released a new version
         run: git pull
 
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: Maven release and publish
         if: steps.changes.outputs.src == 'true'
         uses: qcastel/github-actions-maven-release@v1.12.16
