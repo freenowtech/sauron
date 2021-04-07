@@ -88,6 +88,7 @@ jobs:
             sauron-service/target/*-javadoc.jar?(.)*
 
       - name: Extract version
+        if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
         id: extractversion
         run: echo "::set-output name=version::$(cut -c16- <<< "${{ steps.previoustag.outputs.tag }}")"
 
