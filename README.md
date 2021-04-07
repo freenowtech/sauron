@@ -1,7 +1,8 @@
 # SAURON - VERSION AND DEPLOYMENT TRACKER
 
 [![Build](https://github.com/freenowtech/sauron/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/freenowtech/sauron/actions/workflows/build.yml)
-[![Release](https://github.com/freenowtech/sauron/actions/workflows/release.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/release.yml)
+[![Release Components](https://github.com/freenowtech/sauron/actions/workflows/release-components.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/release-components.yml)
+[![Release Plugins](https://github.com/freenowtech/sauron/actions/workflows/release-plugins.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/release-plugins.yml)
 
 <p align="center" style="background-color:black;">
   <img src="https://steamuserimages-a.akamaihd.net/ugc/541883619699450274/D25F66426956C58E110013352AE49102BD01BCE2/" />
@@ -72,6 +73,29 @@ This command will start three components:
 for each configuration folder/file. If there is no configuration already created, please create one before running
 the command above. For more details please refer to
 [docker-compose.yaml > Volumes](https://github.com/freenowtech/sauron/blob/main/sauron-service/docker-compose.yml?at=master#48)*
+
+### Docker
+
+In order to run Sauron with you predefined configuration using docker, use the command below:
+
+```shell
+docker run \
+    -e SPRING_CONFIG_LOCATION="/sauron/config/sauron-service.yml" \
+    -e M2_HOME="/usr/share/maven" \
+    -e SPRING_PROFILES_INCLUDE="local" \
+    -e SPRING_CLOUD_CONFIG_ENABLED="false" \
+    --mount type=bind,source=${PWD}/sauron-service/docker/config/sauron-service.yml,destination=/sauron/config/sauron-service.yml,readonly \
+    --mount type=bind,source=${PWD}/sauron-service/plugins,destination=/sauron/plugins \
+    --mount type=bind,source=${HOME}/.m2,destination=/root/.m2 \
+    --mount type=bind,source=${HOME}/.gradle,destination=/root/.gradle \
+    --mount type=bind,source=${HOME}/.npmrc,destination=/root/.npmrc \
+    --mount type=bind,source=${HOME}/.ssh,destination=/root/.ssh,readonly \
+    --name=sauron \
+    -p 8080:8080 \
+    ghcr.io/freenowtech/sauron/sauron-service:latest
+```
+
+If you need to use a specific version, please refer to [Sauron Packages](https://github.com/orgs/freenowtech/packages/container/package/sauron%2Fsauron-service)
 
 ---
 
