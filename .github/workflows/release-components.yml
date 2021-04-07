@@ -87,9 +87,12 @@ jobs:
             sauron-service/target/*-sources.jar?(.)*
             sauron-service/target/*-javadoc.jar?(.)*
 
+      - name: Extract version
+        id: extractversion
+        run: echo "::set-output name=version::$(cut -c16- <<< "${{ steps.previoustag.outputs.tag }}")"
+
       - name: Publish to Registry
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
-        pre: echo ::save-state name=RELEASE_VERSION::$(echo ${${{ steps.previoustag.outputs.tag }}:15})
         uses: elgohr/Publish-Docker-Github-Action@3.02
         with:
           name: freenowtech/sauron/sauron-service
@@ -98,4 +101,4 @@ jobs:
           default_branch: main
           workdir: sauron-service/
           registry: ghcr.io
-          tags: "latest,${{ env.STATE_RELEASE_VERSION }}"
+          tags: "latest,${{ steps.extractversion.outputs.version }}"
