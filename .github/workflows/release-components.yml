@@ -89,6 +89,7 @@ jobs:
 
       - name: Publish to Registry
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
+        pre: echo ::save-state name=RELEASE_VERSION::$(echo ${${{ steps.previoustag.outputs.tag }}:15})
         uses: elgohr/Publish-Docker-Github-Action@3.02
         with:
           name: freenowtech/sauron/sauron-service
@@ -97,5 +98,4 @@ jobs:
           default_branch: main
           workdir: sauron-service/
           registry: ghcr.io
-          tag_semver: true
-
+          tags: "latest,${{ env.STATE_RELEASE_VERSION }}"
