@@ -36,11 +36,11 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
         <pf4j-update.version>2.3.0</pf4j-update.version>
-        <artifactory-java-client-services.version>2.9.1</artifactory-java-client-services.version>
+        <artifactory-java-client-services.version>2.9.2</artifactory-java-client-services.version>
         <spring-cloud.version>Hoxton.SR7</spring-cloud.version>
         <modelmapper.version>2.3.8</modelmapper.version>
         <swagger.version>3.0.0</swagger.version>
-        <multirabbit.version>2.3.1</multirabbit.version>
+        <multirabbit.version>2.3.2</multirabbit.version>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
@@ -76,24 +76,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <repositories>
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-jfrog</id>
-            <url>https://dl.bintray.com/jfrog/artifactory-tools</url>
-        </repository>
-
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-mytaxi</id>
-            <url>https://dl.bintray.com/mytaxi/oss</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <!-- SPRING -->

@@ -9,7 +9,7 @@ import com.freenow.sauron.properties.PipelineConfigurationProperties;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
