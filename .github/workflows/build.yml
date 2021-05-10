@@ -26,4 +26,4 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build with Maven and run the tests
-        run: mvn -T 8 --batch-mode --update-snapshots verify -Dgpg.skip=true
+        run: mvn --batch-mode --update-snapshots verify -Dgpg.skip=true
