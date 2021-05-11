@@ -1,5 +1,7 @@
 # SAURON - VERSION AND DEPLOYMENT TRACKER
 
+[![Release](https://img.shields.io/github/v/release/freenowtech/sauron)](https://github.com/freenowtech/sauron/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/freenowtech/sauron/total?label=release%20binary%20downloads)](https://github.com/freenowtech/sauron/releases/latest)
 [![Build](https://github.com/freenowtech/sauron/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/freenowtech/sauron/actions/workflows/build.yml)
 [![Release Components](https://github.com/freenowtech/sauron/actions/workflows/release-components.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/release-components.yml)
 [![Release Plugins](https://github.com/freenowtech/sauron/actions/workflows/release-plugins.yml/badge.svg)](https://github.com/freenowtech/sauron/actions/workflows/release-plugins.yml)
@@ -126,7 +128,7 @@ For a Sauron configuration file example, please refer to
 Before start using Sauron, it is import to define the
 [index template](https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-templates.html) that will be used
 by Elasticsearch to create Sauron's index. It can be done by running the command line below:
- 
+
  ```commandline
 elasticsearch/sauron-template.sh
 elasticsearch/dependencies-template.sh
