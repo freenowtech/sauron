@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - sauron-core/**
+      - sauron-plugin-archetype/**
+      - sauron-service/**
 
 jobs:
   package-and-publish:
