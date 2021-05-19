@@ -11,7 +11,8 @@ This plugin uses the following configuration:
 ```yaml
 sauron.plugins:
     readme-checker:
-        minLength: <minimum readme lenght e.g. '1B', '10KB' - default value 1B>
+        minLength: <minimum readme length e.g. '1B', '10KB' - default value 1B>
+        caseSensitive: <if true only 'README.md' is a valid name - default value false>
 ```
 
 ### Input

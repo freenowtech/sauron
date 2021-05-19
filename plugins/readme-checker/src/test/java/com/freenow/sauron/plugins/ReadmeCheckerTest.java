@@ -83,6 +83,30 @@ public class ReadmeCheckerTest
 
 
     @Test
+    public void testReadmeCheckerCaseInsensitive() throws IOException
+    {
+        DataSet dataSet = apply(10, "1B", "readme.md", false);
+        checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, false);
+    }
+
+
+    @Test
+    public void testReadmeCheckerCaseInsensitiveMixedCase() throws IOException
+    {
+        DataSet dataSet = apply(10, "1B", "ReadmE.md", false);
+        checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, false);
+    }
+
+
+    @Test
+    public void testReadmeCheckerCaseSensitivityEnabled() throws IOException
+    {
+        DataSet dataSet = apply(10, "1B", "readme.md", true);
+        checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, true);
+    }
+
+
+    @Test
     public void testReadmeCheckerReadmeNoConfig() throws IOException
     {
         DataSet dataSet = apply(1, null);
@@ -95,6 +119,24 @@ public class ReadmeCheckerTest
         ReadmeChecker plugin = new ReadmeChecker();
         DataSet dataSet = createDataSet(readmeSize);
         PluginsConfigurationProperties properties = createPluginConfigurationProperties(minLength);
+        return plugin.apply(properties, dataSet);
+    }
+
+
+    private DataSet apply(int readmeSize, String minLength, String readmeFileName) throws IOException
+    {
+        ReadmeChecker plugin = new ReadmeChecker();
+        DataSet dataSet = createDataSet(readmeSize, readmeFileName);
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(minLength);
+        return plugin.apply(properties, dataSet);
+    }
+
+
+    private DataSet apply(int readmeSize, String minLength, String readmeFileName, boolean caseSensitive) throws IOException
+    {
+        ReadmeChecker plugin = new ReadmeChecker();
+        DataSet dataSet = createDataSet(readmeSize, readmeFileName);
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(minLength, caseSensitive);
         return plugin.apply(properties, dataSet);
     }
 
@@ -115,26 +157,40 @@ public class ReadmeCheckerTest
 
     private PluginsConfigurationProperties createPluginConfigurationProperties(String minLength)
     {
+        return createPluginConfigurationProperties(minLength, true);
+    }
+
+
+    private PluginsConfigurationProperties createPluginConfigurationProperties(String minLength, boolean caseSensitive)
+    {
         PluginsConfigurationProperties properties = new PluginsConfigurationProperties();
+        HashMap<String, Object> readmeCheckerProperties = new HashMap<>();
+
         if (!StringUtils.isEmpty(minLength))
         {
-            properties.put("readme-checker", new HashMap<String, Object>()
-            {{
-                put("minLength", minLength);
-            }});
+            readmeCheckerProperties.put("minLength", minLength);
         }
+        readmeCheckerProperties.put("caseSensitive", Boolean.toString(caseSensitive));
+
+        properties.put("readme-checker", readmeCheckerProperties);
         return properties;
     }
 
 
     private DataSet createDataSet(int readmeSize) throws IOException
     {
+        return createDataSet(readmeSize, "README.md");
+    }
+
+
+    private DataSet createDataSet(int readmeSize, String readmeFileName) throws IOException
+    {
         Path repositoryPath = Files.createTempDirectory("readme-checker-test");
         repositoryPath.toFile().deleteOnExit();
 
         if (readmeSize > -1)
         {
-            try (FileOutputStream stream = new FileOutputStream(repositoryPath.resolve("README.md").toFile()))
+            try (FileOutputStream stream = new FileOutputStream(repositoryPath.resolve(readmeFileName).toFile()))
             {
                 stream.write(new byte[readmeSize]);
             }
