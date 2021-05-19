@@ -81,6 +81,13 @@ public class ReadmeCheckerTest
         checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, false);
     }
 
+    @Test
+    public void testReadmeCheckerCaseInsensitive() throws IOException
+    {
+        DataSet dataSet = apply(10, "1B", "readme.md");
+        checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, false);
+    }
+
 
     @Test
     public void testReadmeCheckerReadmeNoConfig() throws IOException
@@ -94,6 +101,14 @@ public class ReadmeCheckerTest
     {
         ReadmeChecker plugin = new ReadmeChecker();
         DataSet dataSet = createDataSet(readmeSize);
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(minLength);
+        return plugin.apply(properties, dataSet);
+    }
+
+    private DataSet apply(int readmeSize, String minLength, String readmeFileName) throws IOException
+    {
+        ReadmeChecker plugin = new ReadmeChecker();
+        DataSet dataSet = createDataSet(readmeSize, readmeFileName);
         PluginsConfigurationProperties properties = createPluginConfigurationProperties(minLength);
         return plugin.apply(properties, dataSet);
     }
@@ -118,7 +133,7 @@ public class ReadmeCheckerTest
         PluginsConfigurationProperties properties = new PluginsConfigurationProperties();
         if (!StringUtils.isEmpty(minLength))
         {
-            properties.put("readme-checker", new HashMap<String, Object>()
+            properties.put("readme-checker", new HashMap<>()
             {{
                 put("minLength", minLength);
             }});
@@ -127,14 +142,18 @@ public class ReadmeCheckerTest
     }
 
 
-    private DataSet createDataSet(int readmeSize) throws IOException
+    private DataSet createDataSet(int readmeSize) throws IOException {
+        return createDataSet(readmeSize, "README.md");
+    }
+
+    private DataSet createDataSet(int readmeSize, String readmeFileName) throws IOException
     {
         Path repositoryPath = Files.createTempDirectory("readme-checker-test");
         repositoryPath.toFile().deleteOnExit();
 
         if (readmeSize > -1)
         {
-            try (FileOutputStream stream = new FileOutputStream(repositoryPath.resolve("README.md").toFile()))
+            try (FileOutputStream stream = new FileOutputStream(repositoryPath.resolve(readmeFileName).toFile()))
             {
                 stream.write(new byte[readmeSize]);
             }
