@@ -5,9 +5,15 @@ import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import com.google.gson.reflect.TypeToken;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiResponse;
+import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
+import io.kubernetes.client.openapi.models.V1Job;
+import io.kubernetes.client.openapi.models.V1JobList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1beta1CronJob;
+import io.kubernetes.client.openapi.models.V1beta1CronJobList;
+import io.kubernetes.client.proto.V1Batch;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,9 +55,9 @@ public class KubernetesApiReportTest
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of(), Map.of()));
 
         DataSet dataSet = createDataSet();
-        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of(
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of("deployment", Map.of(
             "0", "test/label"
-        ));
+        )));
         plugin.apply(properties, dataSet);
         checkKeyNotPresent(dataSet, "test/label");
     }
@@ -63,9 +69,9 @@ public class KubernetesApiReportTest
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of("test/annotation", "myservice"), Map.of()));
 
         DataSet dataSet = createDataSet();
-        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of(
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of("deployment", Map.of(
             "0", "test/annotation"
-        ));
+        )));
         plugin.apply(properties, dataSet);
         checkKeyPresent(dataSet, "test/annotation", "myservice");
     }
@@ -77,9 +83,9 @@ public class KubernetesApiReportTest
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of(), Map.of("test/label", "myservice")));
 
         DataSet dataSet = createDataSet();
-        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of(
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of("deployment", Map.of(
             "0", "test/label"
-        ));
+        )));
         plugin.apply(properties, dataSet);
         checkKeyPresent(dataSet, "test/label", "myservice");
     }
@@ -91,9 +97,9 @@ public class KubernetesApiReportTest
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of("test/annotation", "myservice"), Map.of()));
 
         DataSet dataSet = createDataSet();
-        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of(
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of("deployment", Map.of(
             "0", "test/wronglabel"
-        ));
+        )));
         plugin.apply(properties, dataSet);
         checkKeyNotPresent(dataSet, "test/wronglabel");
     }
@@ -105,9 +111,21 @@ public class KubernetesApiReportTest
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of("test/annotation", "myserviceannotation"), Map.of("test/annotation", "myservicelabel")));
 
         DataSet dataSet = createDataSet();
-        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of(
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of("deployment", Map.of(
             "0", "test/annotation"
-        ));
+        )));
+        plugin.apply(properties, dataSet);
+        checkKeyPresent(dataSet, "test/annotation", "myserviceannotation");
+    }
+
+
+    @Test
+    public void testKubernetesApiReportCronjobApply()
+    {
+        mockV1BatchApiResponse(createJobList(Map.of("test/annotation", "myserviceannotation"), Map.of()));
+
+        DataSet dataSet = createDataSet();
+        PluginsConfigurationProperties properties = createPluginConfigurationProperties(Map.of("cronjob", Map.of("0", "test/annotation")));
         plugin.apply(properties, dataSet);
         checkKeyPresent(dataSet, "test/annotation", "myserviceannotation");
     }
@@ -136,12 +154,12 @@ public class KubernetesApiReportTest
     }
 
 
-    private PluginsConfigurationProperties createPluginConfigurationProperties(Map<String, String> selectors)
+    private PluginsConfigurationProperties createPluginConfigurationProperties(Map<String, Map<String, String>> selectors)
     {
         PluginsConfigurationProperties properties = new PluginsConfigurationProperties();
         properties.put("kubernetesapi-report", Map.of(
             "serviceLabel", "serviceLabel",
-            "selectors", Map.of("deployment", selectors))
+            "selectors", selectors)
         );
         return properties;
     }
@@ -157,9 +175,25 @@ public class KubernetesApiReportTest
     }
 
 
+    @SneakyThrows
+    private void mockV1BatchApiResponse(V1beta1CronJobList list)
+    {
+        ApiResponse<V1beta1CronJobList> api = new ApiResponse<>(200, null, list);
+        doReturn(api).when(client).execute(any(), eq(new TypeToken<V1beta1CronJobList>()
+        {
+        }.getType()));
+    }
+
+
     private V1DeploymentList createDeploymentList(Map<String, String> annotations, Map<String, String> labels)
     {
         return new V1DeploymentList().items(List.of(new V1Deployment().metadata(createObjectMeta(annotations, labels))));
+    }
+
+
+    private V1beta1CronJobList createJobList(Map<String, String> annotations, Map<String, String> labels)
+    {
+        return new V1beta1CronJobList().items(List.of(new V1beta1CronJob().metadata(createObjectMeta(annotations, labels))));
     }
 
 

@@ -7,6 +7,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.AutoscalingV1Api;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
+import io.kubernetes.client.openapi.apis.BatchV1beta1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
 import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
@@ -16,12 +17,14 @@ import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1beta1CronJob;
 import io.kubernetes.client.util.Config;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.Extension;
 
@@ -43,28 +46,36 @@ public class KubernetesApiReport implements SauronExtension
 
     private final ApiClient client;
 
+
     public KubernetesApiReport() throws IOException
     {
         client = Config.defaultClient();
     }
 
+
     @Override
     public DataSet apply(PluginsConfigurationProperties properties, DataSet input)
     {
         properties.getPluginConfigurationProperty(PLUGIN_ID, SERVICE_LABEL_PROPERTY).ifPresent(serviceLabel ->
-            properties.getPluginConfigurationProperty(PLUGIN_ID, SELECTORS_PROPERTY).ifPresent(resourceFilters ->
+            properties.getPluginConfigurationProperty(PLUGIN_ID, SELECTORS_PROPERTY).ifPresent(resourceFiltersProperty ->
             {
                 try
                 {
-                    ((Map<?, ?>) resourceFilters).forEach((resource, filters) ->
-                        getObjectMeta(String.valueOf(serviceLabel), String.valueOf(resource), input.getServiceName()).ifPresent(objectMeta ->
-                            castFilters(filters).forEach(filter ->
+                    Map<?, ?> resourceFilters = ((Map<String, Map<?, ?>>) resourceFiltersProperty);
+                    for (Map.Entry<?, ?> entry : resourceFilters.entrySet())
+                    {
+                        Optional<V1ObjectMeta> objectMetaOpt = getObjectMeta(String.valueOf(serviceLabel), String.valueOf(entry.getKey()), input.getServiceName());
+
+                        if (objectMetaOpt.isPresent())
+                        {
+                            for (Object filter : castFilters(entry.getValue()))
                             {
-                                trySetValue(input, String.valueOf(filter), objectMeta.getAnnotations());
-                                trySetValue(input, String.valueOf(filter), objectMeta.getLabels());
-                            })
-                        )
-                    );
+                                trySetValue(input, String.valueOf(filter), objectMetaOpt.get().getAnnotations());
+                                trySetValue(input, String.valueOf(filter), objectMetaOpt.get().getLabels());
+                            }
+                            break;
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -96,6 +107,7 @@ public class KubernetesApiReport implements SauronExtension
                         labelSelector,
                         null,
                         null,
+                        null,
                         TIMEOUT_SECONDS,
                         false
                     ).getItems().stream().findFirst().map(V1Pod::getMetadata);
@@ -107,6 +119,7 @@ public class KubernetesApiReport implements SauronExtension
                         null,
                         null,
                         labelSelector,
+                        null,
                         null,
                         null,
                         TIMEOUT_SECONDS,
@@ -122,6 +135,7 @@ public class KubernetesApiReport implements SauronExtension
                         labelSelector,
                         null,
                         null,
+                        null,
                         TIMEOUT_SECONDS,
                         false
                     ).getItems().stream().findFirst().map(V1Deployment::getMetadata);
@@ -135,12 +149,13 @@ public class KubernetesApiReport implements SauronExtension
                         labelSelector,
                         null,
                         null,
+                        null,
                         TIMEOUT_SECONDS,
                         false
                     ).getItems().stream().findFirst().map(NetworkingV1beta1Ingress::getMetadata);
                 case CRONJOB:
                 case JOB:
-                    return new BatchV1Api(client).listNamespacedJob(
+                    return new BatchV1beta1Api(client).listNamespacedCronJob(
                         DEFAULT_NAMESPACE,
                         FALSE,
                         false,
@@ -149,9 +164,10 @@ public class KubernetesApiReport implements SauronExtension
                         labelSelector,
                         null,
                         null,
+                        null,
                         TIMEOUT_SECONDS,
                         false
-                    ).getItems().stream().findFirst().map(V1Job::getMetadata);
+                    ).getItems().stream().findFirst().map(V1beta1CronJob::getMetadata);
                 case HORIZONTALPODAUTOSCALER:
                     return new AutoscalingV1Api(client).listNamespacedHorizontalPodAutoscaler(
                         DEFAULT_NAMESPACE,
@@ -160,6 +176,7 @@ public class KubernetesApiReport implements SauronExtension
                         null,
                         null,
                         labelSelector,
+                        null,
                         null,
                         null,
                         TIMEOUT_SECONDS,
@@ -180,7 +197,7 @@ public class KubernetesApiReport implements SauronExtension
 
     private void trySetValue(DataSet input, String key, Map<String, String> map)
     {
-        if(map != null)
+        if (map != null)
         {
             log.debug("Trying to get annotation/label {} from {}", key, map.keySet());
             if (input.getStringAdditionalInformation(key).isEmpty() && map.containsKey(key))
@@ -190,6 +207,7 @@ public class KubernetesApiReport implements SauronExtension
             }
         }
     }
+
 
     private Collection<?> castFilters(Object filters)
     {
