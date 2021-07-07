@@ -16,11 +16,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       maven \
       git \
       ssh \
-      apt-utils
+      apt-utils \
+      wget \
+      build-essential \
+      libreadline-gplv2-dev \
+      libncursesw5-dev \
+      libssl-dev \
+      libsqlite3-dev \
+      tk-dev \
+      libgdbm-dev \
+      libc6-dev \
+      libbz2-dev \
+      libffi-dev \
+      zlib1g-dev
 
+# Installing NodeJS
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
 RUN apt-get update && apt-get install -y nodejs --no-install-recommends
+
+# Installing Python3.9
+RUN wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
+
+RUN tar xzf Python-3.9.6.tgz && cd Python-3.9.6 && ./configure --enable-optimizations && make altinstall
+
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.9 10
+
+RUN cd .. && rm -rf Python-3.9.6*
 
 RUN rm -rf /var/lib/apt/lists/*
 
