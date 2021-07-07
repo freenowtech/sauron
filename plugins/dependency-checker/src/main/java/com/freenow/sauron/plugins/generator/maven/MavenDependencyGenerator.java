@@ -1,5 +1,6 @@
-package com.freenow.sauron.plugins.generator;
+package com.freenow.sauron.plugins.generator.maven;
 
+import com.freenow.sauron.plugins.generator.DependencyGenerator;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;

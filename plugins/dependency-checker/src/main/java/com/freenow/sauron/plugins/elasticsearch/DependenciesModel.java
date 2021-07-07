@@ -42,17 +42,18 @@ public class DependenciesModel extends HashMap<String, Object>
         String name = (String) dependency.get("name");
 
         /*
-         * Node modules don't have a group but can have a scope (e.g. @<scope>/package-name) which CycloneDX
+         * Node and python modules don't have a group but can have a scope (e.g. @<scope>/package-name) which CycloneDX
          * uses as group replacement. To avoid conflicts between node modules and dependencies from other
-         * ecosystems all node modules are assigned the group `org.npmjs`.
+         * ecosystems all node modules are assigned the group default group according to the project type.
          */
-        if (projectType == ProjectType.NODEJS)
+        if (projectType.hasNullGroup())
         {
             if (group != null)
             {
                 name = String.format("%s/%s", group, name);
             }
-            group = "org.npmjs";
+
+            group = projectType.defaultGroup();
         }
 
         return String.format("%s:%s", group, name.replace(".", "_"));

@@ -74,7 +74,7 @@ This command will start three components:
 **Note**: *Since Sauron needs your maven, gradle, pip and nodejs configuration, the `docker-compose.yml` creates a volume
 for each configuration folder/file. If there is no configuration already created, please create one before running
 the command above. For more details please refer to
-[docker-compose.yaml > Volumes](https://github.com/freenowtech/sauron/blob/main/sauron-service/docker-compose.yml?at=master#48)*
+[docker-compose.yaml > Volumes](https://github.com/freenowtech/sauron/blob/main/sauron-service/docker-compose.yml#L48)*
 
 ### Docker
 

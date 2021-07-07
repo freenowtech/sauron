@@ -109,8 +109,10 @@ public class DependencyCheckerTest
     public void testDependencyCheckerPythonRequirementsProject() throws IOException, URISyntaxException
     {
         DataSet dataSet = createDataSet("requirements.txt", "requirements.txt");
-        dataSet = plugin.apply(new PluginsConfigurationProperties(), dataSet);
+        dataSet = plugin.apply(createPythonPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", PYTHON_REQUIREMENTS.toString());
+
+        checkKeyPresent(plugin.dependenciesModel, "org.python:boto3", "1.17.105");
     }
 
 
@@ -118,8 +120,10 @@ public class DependencyCheckerTest
     public void testDependencyCheckerPythonPoetryProject() throws IOException, URISyntaxException
     {
         DataSet dataSet = createDataSet("pyproject.toml", "pyproject.toml");
-        dataSet = plugin.apply(new PluginsConfigurationProperties(), dataSet);
+        dataSet = plugin.apply(createPythonPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", PYTHON_POETRY.toString());
+
+        checkKeyPresent(plugin.dependenciesModel, "org.python:boto3", "1.17.105");
     }
 
 
@@ -207,6 +211,19 @@ public class DependencyCheckerTest
             "nodejs", Map.of(
                 "npm", Objects.requireNonNull(classLoader.getResource("bin/npm")).getPath(),
                 "npx", Objects.requireNonNull(classLoader.getResource("bin/npx")).getPath()
+            )
+        ));
+        return properties;
+    }
+
+
+    private PluginsConfigurationProperties createPythonPluginConfigurationProperties()
+    {
+        ClassLoader classLoader = getClass().getClassLoader();
+        PluginsConfigurationProperties properties = new PluginsConfigurationProperties();
+        properties.put("dependency-checker", Map.of(
+            "python", Map.of(
+                "path", Objects.requireNonNull(classLoader.getResource("bin/python")).getPath()
             )
         ));
         return properties;
