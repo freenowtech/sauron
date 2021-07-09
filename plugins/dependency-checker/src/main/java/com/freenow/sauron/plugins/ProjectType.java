@@ -34,13 +34,13 @@ public enum ProjectType
         {
             return NODEJS;
         }
-        if (Files.exists(repositoryPath.resolve("requirements.txt")))
-        {
-            return PYTHON_REQUIREMENTS;
-        }
         if (Files.exists(repositoryPath.resolve("pyproject.toml")))
         {
             return PYTHON_POETRY;
+        }
+        if (Files.exists(repositoryPath.resolve("requirements.txt")))
+        {
+            return PYTHON_REQUIREMENTS;
         }
         if (Files.exists(repositoryPath.resolve("build.sbt")))
         {
