@@ -71,7 +71,7 @@ This command will start three components:
 - kibana: http://localhost:5601
 - sauron-service: http://localhost:8080
 
-**Note**: *Since Sauron needs your maven, gradle and nodejs configuration, the `docker-compose.yml` creates a volume
+**Note**: *Since Sauron needs your maven, gradle, pip and nodejs configuration, the `docker-compose.yml` creates a volume
 for each configuration folder/file. If there is no configuration already created, please create one before running
 the command above. For more details please refer to
 [docker-compose.yaml > Volumes](https://github.com/freenowtech/sauron/blob/main/sauron-service/docker-compose.yml?at=master#48)*
@@ -90,6 +90,7 @@ docker run \
     --mount type=bind,source=${PWD}/sauron-service/plugins,destination=/sauron/plugins \
     --mount type=bind,source=${HOME}/.m2,destination=/root/.m2 \
     --mount type=bind,source=${HOME}/.gradle,destination=/root/.gradle \
+    --mount type=bind,source=${HOME}/.pip,destination=/root/.pip \
     --mount type=bind,source=${HOME}/.npmrc,destination=/root/.npmrc \
     --mount type=bind,source=${HOME}/.ssh,destination=/root/.ssh,readonly \
     --name=sauron \
