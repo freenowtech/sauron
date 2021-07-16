@@ -60,6 +60,9 @@ services:
         source: ~/.gradle
         target: /root/.gradle
       - type: bind
+        source: ~/.pip
+        target: /root/.pip
+      - type: bind
         source: ~/.npmrc
         target: /root/.npmrc
       - type: bind

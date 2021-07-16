@@ -54,6 +54,10 @@ RUN mkdir /root/.gradle
 
 VOLUME /root/.gradle
 
+RUN mkdir /root/.pip
+
+VOLUME /root/.pip
+
 RUN mkdir -p /sauron/plugins
 
 VOLUME /sauron/plugins
