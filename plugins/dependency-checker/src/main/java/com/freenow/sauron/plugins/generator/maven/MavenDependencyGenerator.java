@@ -33,6 +33,7 @@ public class MavenDependencyGenerator implements DependencyGenerator
             injectCycloneDxPlugin(pom);
             InvocationRequest request = new DefaultInvocationRequest();
             request.setPomFile(pom);
+            request.setQuiet(true);
             request.setGoals(Collections.singletonList("cyclonedx:makeBom"));
 
             Invoker invoker = new DefaultInvoker();
