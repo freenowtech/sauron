@@ -1,7 +1,6 @@
 FROM openjdk:11-jre-slim
 
-ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=80" \
-  JMXTRANS_VERSION=1.2.8
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=80"
 
 LABEL maintainer="upscaler@free-now.com"
 
@@ -45,6 +44,9 @@ RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.
 RUN cd .. && rm -rf Python-3.9.6*
 
 RUN rm -rf /var/lib/apt/lists/*
+
+# Installing Poetry
+RUN python -m pip install poetry==1.1.7
 
 RUN mkdir /root/.m2
 

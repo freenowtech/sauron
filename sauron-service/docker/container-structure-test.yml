@@ -21,6 +21,18 @@ commandTests:
       - \nnodejs/.*
       - \napt-utils/.*
 
+  - name: Checking whether python is installed
+    command: /usr/bin/which
+    args: [ "python" ]
+    expectedOutput:
+      - /usr/bin/python
+
+  - name: Checking whether poetry is installed
+    command: /usr/bin/python
+    args: [ "-m", "pip", "list" ]
+    expectedOutput:
+      - \npoetry.*
+
 fileExistenceTests:
   - name: Copies the entrypoint
     path: /usr/local/bin/entrypoint
@@ -31,5 +43,3 @@ metadataTest:
   env:
     - key: JAVA_HOME
       value: /usr/local/openjdk-11
-    - key: JMXTRANS_VERSION
-      value: 1.2.8
