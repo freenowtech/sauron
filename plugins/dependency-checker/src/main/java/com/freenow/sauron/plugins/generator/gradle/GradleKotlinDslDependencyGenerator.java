@@ -1,4 +1,4 @@
-package com.freenow.sauron.plugins.generator;
+package com.freenow.sauron.plugins.generator.gradle;
 
 public class GradleKotlinDslDependencyGenerator extends GradleDependencyGenerator
 {

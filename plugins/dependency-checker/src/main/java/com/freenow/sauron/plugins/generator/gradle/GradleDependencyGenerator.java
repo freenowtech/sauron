@@ -1,5 +1,6 @@
-package com.freenow.sauron.plugins.generator;
+package com.freenow.sauron.plugins.generator.gradle;
 
+import com.freenow.sauron.plugins.generator.DependencyGenerator;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

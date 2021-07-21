@@ -1,5 +1,6 @@
-package com.freenow.sauron.plugins.generator;
+package com.freenow.sauron.plugins.generator.maven;
 
+import com.freenow.sauron.plugins.generator.DependencyGenerator;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -32,6 +33,7 @@ public class MavenDependencyGenerator implements DependencyGenerator
             injectCycloneDxPlugin(pom);
             InvocationRequest request = new DefaultInvocationRequest();
             request.setPomFile(pom);
+            request.setQuiet(true);
             request.setGoals(Collections.singletonList("cyclonedx:makeBom"));
 
             Invoker invoker = new DefaultInvoker();

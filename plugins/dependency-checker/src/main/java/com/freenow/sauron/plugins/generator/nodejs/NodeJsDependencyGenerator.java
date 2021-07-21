@@ -1,23 +1,18 @@
-package com.freenow.sauron.plugins.generator;
+package com.freenow.sauron.plugins.generator.nodejs;
 
+import com.freenow.sauron.plugins.command.Command;
+import com.freenow.sauron.plugins.command.NonZeroExitCodeException;
+import com.freenow.sauron.plugins.generator.DependencyGenerator;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
-import lombok.extern.slf4j.Slf4j;
-
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NodeJsDependencyGenerator implements DependencyGenerator
 {
-    public static class NonZeroExitCodeException extends RuntimeException
-    {
-        private NonZeroExitCodeException(String command)
-        {
-            super("`" + command + "` did finish with non-zero exit code");
-        }
-    }
-
     public static class PackageLockJsonMissingException extends IllegalStateException
     {
         private PackageLockJsonMissingException()
@@ -49,7 +44,8 @@ public class NodeJsDependencyGenerator implements DependencyGenerator
                     this.npmBin = (String) config.getOrDefault("npm", npmBin);
                     this.npxBin = (String) config.getOrDefault("npx", npxBin);
                 }
-                else {
+                else
+                {
                     log.warn("Config sauron.plugins.dependency-checker.nodejs is malformed, expected map.");
                 }
             });
@@ -77,42 +73,30 @@ public class NodeJsDependencyGenerator implements DependencyGenerator
     }
 
 
-    private void npmInstall(Path repositoryPath) throws Exception
+    private void npmInstall(Path repositoryPath) throws IOException, InterruptedException, YarnNotSupportedException, PackageLockJsonMissingException, NonZeroExitCodeException
     {
         requireNotYarn(repositoryPath);
         requirePackageLockJson(repositoryPath);
-
-        int exitCode = new ProcessBuilder()
-            .command(npmBin, "ci")
-            .directory(repositoryPath.toFile())
-            .start()
-            .waitFor();
-
-        if (exitCode != 0)
-        {
-            throw new NonZeroExitCodeException(npmBin + " ci");
-        }
+        Command.builder()
+            .repositoryPath(repositoryPath)
+            .commandline(String.join(" ", npmBin, "ci"))
+            .build()
+            .run();
     }
 
 
-    private Path buildCycloneDxBom(Path repositoryPath) throws Exception
+    private Path buildCycloneDxBom(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException
     {
-        int exitCode = new ProcessBuilder()
-            .command(npxBin, "@cyclonedx/bom")
-            .directory(repositoryPath.toFile())
-            .start()
-            .waitFor();
-
-        if (exitCode != 0)
-        {
-            throw new NonZeroExitCodeException(npxBin + " @cyclonedx/bom");
-        }
-
+        Command.builder()
+            .repositoryPath(repositoryPath)
+            .commandline(String.join(" ", npxBin, "@cyclonedx/bom"))
+            .build()
+            .run();
         return repositoryPath.resolve("bom.xml");
     }
 
 
-    private void requireNotYarn(Path repositoryPath) throws IllegalStateException
+    private void requireNotYarn(Path repositoryPath) throws YarnNotSupportedException
     {
         if (Files.exists(repositoryPath.resolve("yarn.lock")))
         {
@@ -121,7 +105,7 @@ public class NodeJsDependencyGenerator implements DependencyGenerator
     }
 
 
-    private void requirePackageLockJson(Path repositoryPath) throws IllegalStateException
+    private void requirePackageLockJson(Path repositoryPath) throws PackageLockJsonMissingException
     {
         if (Files.notExists(repositoryPath.resolve("package-lock.json")))
         {
