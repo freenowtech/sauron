@@ -34,7 +34,7 @@
         <jackson.version>2.11.2</jackson.version>
         <logback.version>1.2.3</logback.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <scm.url>scm:git:https://github.com/freenowtech/sauron.git</scm.url>
+        <scm.url>scm:git:git@github.com:freenowtech/sauron.git</scm.url>
     </properties>
 
     <scm>
