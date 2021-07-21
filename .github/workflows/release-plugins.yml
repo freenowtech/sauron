@@ -20,7 +20,7 @@ jobs:
 
       - name: List Plugins
         id: list-plugins
-        run: echo "::set-output name=paths::$(git diff --dirstat=files,0 ${{ github.event.head_commit.id }} | sed 's/^[ 0-9.]*% //g' | jq -R -s -c 'split("\n")[:-1] | [ .[] | select( . | contains("plugins"))]')"
+        run: echo "::set-output name=paths::$(git log -1 -m --name-only --pretty="format:" ${{ github.event.head_commit.id }}  | jq -R -s -c 'split("\n")[:-1] |  [.[] | match("(plugins\/[a-zA-Z0-9-_]*\/)").captures[0].string] | unique | sort')"
 
   package-and-publish:
     needs: list-projects
