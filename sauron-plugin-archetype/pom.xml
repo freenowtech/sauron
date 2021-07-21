@@ -31,7 +31,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <scm.url>scm:git:https://github.com/freenowtech/sauron.git</scm.url>
+        <scm.url>scm:git:git@github.com:freenowtech/sauron.git</scm.url>
     </properties>
 
     <scm>
