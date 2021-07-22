@@ -18,9 +18,18 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
 
+      - name: Check for changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          list-files: 'json'
+          filters: |
+            plugins:
+              - 'plugins/**'
+
       - name: List Plugins
         id: list-plugins
-        run: echo "::set-output name=paths::$(git log -1 -m --name-only --pretty="format:" ${{ github.event.head_commit.id }}  | jq -R -s -c 'split("\n")[:-1] |  [.[] | match("(plugins\/[a-zA-Z0-9-_]*\/)").captures[0].string] | unique | sort')"
+        run: echo "::set-output name=paths::$(jq -c '[.[] | match("(plugins\/[a-zA-Z0-9-_]*\/)").captures[0].string] | unique | sort' <<< '${{ steps.changes.outputs.plugins_files }}' )"
 
   package-and-publish:
     needs: list-projects
