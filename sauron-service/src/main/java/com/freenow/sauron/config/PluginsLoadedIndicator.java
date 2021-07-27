@@ -1,8 +1,10 @@
 package com.freenow.sauron.config;
 
+import com.freenow.sauron.plugins.PluginsLoadedEvent;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,8 +22,9 @@ public class PluginsLoadedIndicator implements HealthIndicator
     }
 
 
-    public static void healthy()
+    @EventListener
+    public void onPluginLoadedEvent(PluginsLoadedEvent event)
     {
-        healthy.compareAndExchange(false, true);
+        healthy.set(event.isSuccess());
     }
 }
