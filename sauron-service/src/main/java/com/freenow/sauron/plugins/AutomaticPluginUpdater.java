@@ -1,12 +1,12 @@
 package com.freenow.sauron.plugins;
 
-import com.freenow.sauron.config.PluginsLoadedIndicator;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginRuntimeException;
 import org.pf4j.update.PluginInfo;
 import org.pf4j.update.UpdateManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,20 +18,25 @@ public class AutomaticPluginUpdater
 
     private final PluginManager pluginManager;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     private static final long PLUGIN_UPDATE_DELAY_MILLIS = 300000;
 
 
     @Autowired
-    public AutomaticPluginUpdater(UpdateManager updateManager, PluginManager pluginManager)
+    public AutomaticPluginUpdater(UpdateManager updateManager, PluginManager pluginManager, ApplicationEventPublisher applicationEventPublisher)
     {
         this.updateManager = updateManager;
         this.pluginManager = pluginManager;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
 
     @Scheduled(fixedDelay = PLUGIN_UPDATE_DELAY_MILLIS)
     public void update()
     {
+        PluginsLoadedEvent event = new PluginsLoadedEvent();
+
         try
         {
             log.debug("Searching plugins in plugin repository...");
@@ -42,13 +47,18 @@ public class AutomaticPluginUpdater
 
             updateManager.getAvailablePlugins().parallelStream().forEach(this::installPlugin);
 
-            PluginsLoadedIndicator.healthy();
+            event.setSuccess(true);
+
         }
         catch (Exception e)
         {
             log.error("Cannot load plugins '{}'", e.getMessage(), e);
+            event.setSuccess(false);
         }
+
+        applicationEventPublisher.publishEvent(event);
     }
+
 
     public void forceReload(String pluginId)
     {

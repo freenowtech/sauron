@@ -33,6 +33,7 @@ import org.pf4j.PluginManager;
 import org.pf4j.update.FileVerifier;
 import org.pf4j.update.PluginInfo;
 import org.pf4j.update.UpdateManager;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -60,6 +61,9 @@ public class AutomaticPluginUpdaterTest
 
     @Mock
     private ArtifactoryDownloader downloader;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     private ArtifactoryRepository repository;
 
@@ -93,7 +97,7 @@ public class AutomaticPluginUpdaterTest
 
         PluginManager pluginManager = new DefaultPluginManager();
         updateManager = spy(new UpdateManager(pluginManager, Collections.singletonList(repository)));
-        automaticPluginUpdater = new AutomaticPluginUpdater(updateManager, pluginManager);
+        automaticPluginUpdater = new AutomaticPluginUpdater(updateManager, pluginManager, applicationEventPublisher);
     }
 
 

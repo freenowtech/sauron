@@ -9,7 +9,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 
-
 @Slf4j
 @Setter
 public class SpringEventsRequestHandler implements RequestHandler
@@ -28,7 +27,8 @@ public class SpringEventsRequestHandler implements RequestHandler
     @Override
     public void handle(BuildRequest request)
     {
-        log.debug(String.format("Handling request in Spring Events Request Handler. (%s) %s - %s:%s",
+        log.debug(String.format(
+            "Handling request in Spring Events Request Handler. (%s) %s - %s:%s",
             request.getBuildId(),
             request.getEnvironment(),
             request.getServiceName(),
@@ -42,7 +42,8 @@ public class SpringEventsRequestHandler implements RequestHandler
     @EventListener
     public void consume(BuildRequest request)
     {
-        log.debug(String.format("Spring Events Listener consumed a message from events. (%s) %s - %s:%s",
+        log.debug(String.format(
+            "Spring Events Listener consumed a message from events. (%s) %s - %s:%s",
             request.getBuildId(),
             request.getEnvironment(),
             request.getServiceName(),
