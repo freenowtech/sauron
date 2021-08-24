@@ -18,11 +18,13 @@ public class Cleanup implements SauronExtension
     {
         input.getStringAdditionalInformation("repositoryPath")
             .filter(repositoryPath -> !repositoryPath.isBlank())
+            .map(Path::of)
+            .filter(Files::exists)
             .ifPresent(repositoryPath ->
             {
                 try
                 {
-                    Files.walk(Path.of(repositoryPath))
+                    Files.walk(repositoryPath)
                         .sorted(Comparator.reverseOrder())
                         .map(Path::toFile)
                         .forEach(File::delete);
