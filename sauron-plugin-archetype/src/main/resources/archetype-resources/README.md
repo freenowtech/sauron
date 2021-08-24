@@ -1,7 +1,7 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-$symbol_pound Plugin Name Here
+$symbol_pound ${className} Plugin
 
 $symbol_pound$symbol_pound Description
 

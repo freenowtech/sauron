@@ -244,6 +244,9 @@ Checks whether a service might be using `Bcrypt` to encode the passwords in the 
 #### [jaegerapi-report](https://github.com/freenowtech/sauron/tree/main/plugins/jaegerapi-report)
 Query [Jaeger API](https://www.jaegertracing.io/docs/1.22/apis/) to extract tracing information
 
+#### [cleanup](https://github.com/freenowtech/sauron/tree/main/plugins/cleanup)
+Cleanup Sauron workspace after each pipeline processing
+
 
 ### Creating a New Sauron Plugin
 
