@@ -43,5 +43,6 @@
         <module>plugins/readme-checker</module>
         <module>plugins/bcrypt-passwordencoder-checker</module>
         <module>plugins/jaegerapi-report</module>
+        <module>plugins/cleanup</module>
     </modules>
 </project>
