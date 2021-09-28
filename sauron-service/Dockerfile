@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       apt-utils \
       wget \
       build-essential \
-      libreadline-gplv2-dev \
       libncursesw5-dev \
       libssl-dev \
       libsqlite3-dev \
