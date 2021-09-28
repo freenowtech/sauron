@@ -32,7 +32,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <elasticsearch.version>7.10.2</elasticsearch.version>
+        <elasticsearch.version>7.14.0</elasticsearch.version>
         <scm.url>scm:git:git@github.com:freenowtech/sauron.git</scm.url>
     </properties>
 
