@@ -1,6 +1,8 @@
 package com.freenow.sauron.config;
 
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,5 +17,13 @@ public class RabbitmqConfig
     public Queue sauronQueue()
     {
         return new Queue(SAURON_QUEUE_NAME, true);
+    }
+
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory eventBusPrefetchCount(@Qualifier("eventBus") SimpleRabbitListenerContainerFactory eventBus)
+    {
+        eventBus.setPrefetchCount(1);
+        return eventBus;
     }
 }
