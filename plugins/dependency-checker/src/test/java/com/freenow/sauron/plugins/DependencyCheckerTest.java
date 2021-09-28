@@ -17,6 +17,7 @@ import org.junit.rules.TemporaryFolder;
 import static com.freenow.sauron.plugins.ProjectType.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class DependencyCheckerTest
@@ -147,6 +148,7 @@ public class DependencyCheckerTest
 
     private void checkKeyPresent(DataSet dataSet, String key, Object expected)
     {
+        assertNotNull(dataSet);
         Optional<Object> response = dataSet.getObjectAdditionalInformation(key);
         assertTrue(response.isPresent());
         assertEquals(expected, response.get());
@@ -155,6 +157,7 @@ public class DependencyCheckerTest
 
     private void checkKeyPresent(Map<String, Object> dataSet, String key, Object expected)
     {
+        assertNotNull(dataSet);
         assertTrue(dataSet.containsKey(key));
         assertEquals(expected, dataSet.get(key));
     }
@@ -162,6 +165,7 @@ public class DependencyCheckerTest
 
     private void checkKeyNotPresent(DataSet dataSet, String key)
     {
+        assertNotNull(dataSet);
         Optional<Object> response = dataSet.getObjectAdditionalInformation(key);
         assertFalse(response.isPresent());
     }
@@ -169,6 +173,7 @@ public class DependencyCheckerTest
 
     private void checkKeyNotPresent(Map<String, Object> dataSet, String key)
     {
+        assertNotNull(dataSet);
         assertFalse(dataSet.containsKey(key));
     }
 
