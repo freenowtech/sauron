@@ -17,7 +17,7 @@ public abstract class PythonDependencyGenerator implements DependencyGenerator
     protected static final String REQUIREMENTS_FREEZE_FILE = "requirements.freeze";
 
     private static final String PIP_INSTALL_CYCLONE_DX_COMMAND = "-m pip install --target env cyclonedx-bom";
-    private static final String CYCLONE_DX_PY_COMMAND = "env/cyclonedx/client.py -i requirements.freeze -o bom.xml";
+    private static final String CYCLONE_DX_PY_COMMAND = "env/cyclonedx_py/client.py -r -rf requirements.freeze -o bom.xml";
 
     public static class RequirementsFreezeMissingException extends IllegalStateException
     {
