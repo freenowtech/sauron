@@ -2,7 +2,7 @@
 
 ## Description
 
-This plugin allows Sauron to query Kubernetes api and retrieve the annotations and labels assigned
+This plugin allows Sauron to query Kubernetes api and retrieve the annotations, labels and env vars assigned
 to the resources specified in the configuration and dump the value to the 
 [DataSet](https://github.com/freenowtech/sauron/blob/main/core/src/main/java/com/freenow/sauron/model/DataSet.java).
 
@@ -21,6 +21,8 @@ sauron.plugins:
             deployment:
                 - label
                 - annotation
+        environmentVariablesCheck:
+            - MY_ENV_VAR
 ```
 
 The possible selectors can be found in
@@ -33,3 +35,4 @@ The possible selectors can be found in
 ## Output
 
 - All the selector's value that can be found assigned to the specified resources
+- All the environment variables and its values that were found in the running pod

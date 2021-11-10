@@ -5,15 +5,11 @@ import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import com.google.gson.reflect.TypeToken;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiResponse;
-import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
-import io.kubernetes.client.openapi.models.V1Job;
-import io.kubernetes.client.openapi.models.V1JobList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1beta1CronJob;
 import io.kubernetes.client.openapi.models.V1beta1CronJobList;
-import io.kubernetes.client.proto.V1Batch;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,11 +17,13 @@ import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.freenow.sauron.plugins.KubernetesApiReport.PLUGIN_ID;
+import static com.freenow.sauron.plugins.KubernetesApiReport.SELECTORS_PROPERTY;
+import static com.freenow.sauron.plugins.KubernetesApiReport.SERVICE_LABEL_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,24 +31,24 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 @RunWith(MockitoJUnitRunner.class)
-public class KubernetesApiReportTest
+public class KubernetesLabelAnnotationReaderTest
 {
     @Spy
     private ApiClient client;
 
-    @InjectMocks
     private KubernetesApiReport plugin;
 
 
     @Before
-    public void init() throws NoSuchFieldException
+    public void setup()
     {
-        FieldSetter.setField(plugin, plugin.getClass().getDeclaredField("client"), client);
+        MockitoAnnotations.initMocks(this);
+        plugin = new KubernetesApiReport(client);
     }
 
 
     @Test
-    public void testKubernetesApiReportEmptyAnnotationsLabelsApply()
+    public void testKubernetesLabelAnnotationReaderEmptyAnnotationsLabelsApply()
     {
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of(), Map.of()));
 
@@ -64,7 +62,7 @@ public class KubernetesApiReportTest
 
 
     @Test
-    public void testKubernetesApiReportHaveAnnotationsEmptyLabelsApply()
+    public void testKubernetesLabelAnnotationReaderHaveAnnotationsEmptyLabelsApply()
     {
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of("test/annotation", "myservice"), Map.of()));
 
@@ -78,7 +76,7 @@ public class KubernetesApiReportTest
 
 
     @Test
-    public void testKubernetesApiReportEmptyAnnotationHaveLabelsApply()
+    public void testKubernetesLabelAnnotationReaderEmptyAnnotationHaveLabelsApply()
     {
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of(), Map.of("test/label", "myservice")));
 
@@ -92,7 +90,7 @@ public class KubernetesApiReportTest
 
 
     @Test
-    public void testKubernetesApiReportWrongLabelsAnnotationsApply()
+    public void testKubernetesLabelAnnotationReaderWrongLabelsAnnotationsApply()
     {
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of("test/annotation", "myservice"), Map.of()));
 
@@ -106,7 +104,7 @@ public class KubernetesApiReportTest
 
 
     @Test
-    public void testKubernetesApiReportBothLabelsAnnotationsApply()
+    public void testKubernetesLabelAnnotationReaderBothLabelsAnnotationsApply()
     {
         mockV1DeploymentListApiResponse(createDeploymentList(Map.of("test/annotation", "myserviceannotation"), Map.of("test/annotation", "myservicelabel")));
 
@@ -120,7 +118,7 @@ public class KubernetesApiReportTest
 
 
     @Test
-    public void testKubernetesApiReportCronjobApply()
+    public void testKubernetesLabelAnnotationReaderCronjobApply()
     {
         mockV1BatchApiResponse(createJobList(Map.of("test/annotation", "myserviceannotation"), Map.of()));
 
@@ -157,9 +155,9 @@ public class KubernetesApiReportTest
     private PluginsConfigurationProperties createPluginConfigurationProperties(Map<String, Map<String, String>> selectors)
     {
         PluginsConfigurationProperties properties = new PluginsConfigurationProperties();
-        properties.put("kubernetesapi-report", Map.of(
-            "serviceLabel", "serviceLabel",
-            "selectors", selectors)
+        properties.put(PLUGIN_ID, Map.of(
+            SERVICE_LABEL_PROPERTY, "serviceLabel",
+            SELECTORS_PROPERTY, selectors)
         );
         return properties;
     }
