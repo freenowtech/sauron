@@ -20,17 +20,17 @@ public class KubernetesExecCommand
     private final ApiClient client;
 
 
-    public Optional<String> exec(String pod, String[] commands)
+    public Optional<String> exec(String pod, String command)
     {
         String ret = null;
         try
         {
-            if (commands != null && commands.length > 0)
+            if (command != null && !command.isEmpty())
             {
-                log.debug("Executing command {} in pod {}", String.join(", ", commands), pod);
+                log.debug("Executing command {} in pod {}", command, pod);
                 Exec exec = new Exec(client);
                 boolean tty = System.console() != null;
-                final Process proc = exec.exec(K8S_DEFAULT_NAMESPACE, pod, commands, true, tty);
+                final Process proc = exec.exec(K8S_DEFAULT_NAMESPACE, pod, command.split(" "), true, tty);
 
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
                 Thread out = newThreadStream(proc.getInputStream(), output);
@@ -45,10 +45,10 @@ public class KubernetesExecCommand
 
                 proc.destroy();
 
-                log.debug("Command {} in pod {} returned {}", String.join(", ", commands), pod, proc.exitValue());
+                log.debug("Command {} in pod {} returned {}", command, pod, proc.exitValue());
                 if (proc.exitValue() != 0)
                 {
-                    log.error("Error executing the command '{}' in pod '{}', Error: {}", String.join(", ", commands), pod, error);
+                    log.error("Error executing the command '{}' in pod '{}', Error: {}", command, pod, error);
                 }
                 else
                 {

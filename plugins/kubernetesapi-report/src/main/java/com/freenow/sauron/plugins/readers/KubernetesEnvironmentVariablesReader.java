@@ -18,7 +18,7 @@ import static com.freenow.sauron.plugins.utils.KubernetesResources.POD;
 @RequiredArgsConstructor
 public class KubernetesEnvironmentVariablesReader
 {
-    private static final String ENV_COMMAND = "env";
+    private static final String ENV_COMMAND = "bash -l -c env";
 
     private final KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand;
 
@@ -36,7 +36,7 @@ public class KubernetesEnvironmentVariablesReader
     {
 
         kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName())
-            .flatMap(objectMeta -> kubernetesExecCommand.exec(objectMeta.getName(), new String[] {ENV_COMMAND}))
+            .flatMap(objectMeta -> kubernetesExecCommand.exec(objectMeta.getName(), ENV_COMMAND))
             .flatMap(KubernetesEnvironmentVariablesReader::parse)
             .ifPresent(envVars ->
                 envVarsCheckProperty.forEach(check ->
