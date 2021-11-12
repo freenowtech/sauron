@@ -1,4 +1,4 @@
-package com.freenow.sauron.plugins;
+package com.freenow.sauron.plugins.utils;
 
 import java.util.Arrays;
 
