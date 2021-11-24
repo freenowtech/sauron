@@ -1,23 +1,32 @@
 package com.freenow.sauron.plugins.generator.gradle;
 
 import com.freenow.sauron.plugins.generator.DependencyGenerator;
+import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-
+import org.gradle.tooling.internal.consumer.ConnectorServices;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 @Slf4j
-public abstract class GradleDependencyGenerator implements DependencyGenerator
+public abstract class GradleDependencyGenerator extends DependencyGenerator
 {
+
+    protected GradleDependencyGenerator(PluginsConfigurationProperties properties)
+    {
+        super(properties);
+    }
+
 
     protected abstract String gradleFile();
 
     protected abstract String cycloneDxPlugin();
+
 
     @Override
     public Path generateCycloneDxBom(Path repositoryPath)
@@ -39,8 +48,9 @@ public abstract class GradleDependencyGenerator implements DependencyGenerator
 
     private void runGradleTask(Path repositoryPath, String... tasks)
     {
-        GradleConnector connector = GradleConnector.newConnector();
+        DefaultGradleConnector connector = ConnectorServices.createConnector();
         connector.forProjectDirectory(repositoryPath.toFile());
+        connector.daemonMaxIdleTime(commandTimeoutMinutes, TimeUnit.MINUTES);
         try (ProjectConnection connection = connector.connect())
         {
             BuildLauncher build = connection.newBuild();
@@ -55,7 +65,7 @@ public abstract class GradleDependencyGenerator implements DependencyGenerator
         Path buildGradlePath = repositoryPath.resolve(gradleFile());
         String content = new String(Files.readAllBytes(buildGradlePath));
 
-        if(Pattern.compile("plugins\\s*\\{[^}]*}").matcher(content).find())
+        if (Pattern.compile("plugins\\s*\\{[^}]*}").matcher(content).find())
         {
             content = content.replaceAll("plugins\\s*\\{([^}]*)}", String.format("plugins {$1\n%s\n}", cycloneDxPlugin()));
         }

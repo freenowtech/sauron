@@ -1,11 +1,13 @@
 package com.freenow.sauron.plugins.generator.maven;
 
 import com.freenow.sauron.plugins.generator.DependencyGenerator;
+import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.model.Build;
@@ -22,8 +24,14 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 @Slf4j
-public class MavenDependencyGenerator implements DependencyGenerator
+public class MavenDependencyGenerator extends DependencyGenerator
 {
+    public MavenDependencyGenerator(PluginsConfigurationProperties properties)
+    {
+        super(properties);
+    }
+
+
     @Override
     public Path generateCycloneDxBom(Path repositoryPath)
     {
@@ -32,6 +40,7 @@ public class MavenDependencyGenerator implements DependencyGenerator
             File pom = repositoryPath.resolve("pom.xml").toFile();
             injectCycloneDxPlugin(pom);
             InvocationRequest request = new DefaultInvocationRequest();
+            request.setTimeoutInSeconds(Math.toIntExact(Duration.ofMinutes(commandTimeoutMinutes).toSeconds()));
             request.setPomFile(pom);
             request.setQuiet(!log.isDebugEnabled());
             request.setGoals(Collections.singletonList("cyclonedx:makeBom"));

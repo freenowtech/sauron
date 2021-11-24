@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.Builder;
 
 @Builder
@@ -16,6 +17,7 @@ public class Command
     private final File outputFile;
     private final String commandline;
     private final Path repositoryPath;
+    private final Integer commandTimeout;
 
 
     public void run() throws IOException, InterruptedException, NonZeroExitCodeException
@@ -30,7 +32,7 @@ public class Command
         }
         Process process = builder.start();
 
-        if (process.waitFor() != 0)
+        if (!process.waitFor(commandTimeout, TimeUnit.MINUTES))
         {
             throw new NonZeroExitCodeException(commandline, new String(process.getErrorStream().readAllBytes()));
         }

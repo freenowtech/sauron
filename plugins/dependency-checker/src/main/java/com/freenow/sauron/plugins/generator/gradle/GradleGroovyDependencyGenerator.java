@@ -1,7 +1,15 @@
 package com.freenow.sauron.plugins.generator.gradle;
 
+import com.freenow.sauron.properties.PluginsConfigurationProperties;
+
 public class GradleGroovyDependencyGenerator extends GradleDependencyGenerator
 {
+    public GradleGroovyDependencyGenerator(PluginsConfigurationProperties properties)
+    {
+        super(properties);
+    }
+
+
     @Override
     protected String gradleFile()
     {

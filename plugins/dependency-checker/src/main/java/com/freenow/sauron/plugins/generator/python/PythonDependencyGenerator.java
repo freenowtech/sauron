@@ -11,7 +11,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class PythonDependencyGenerator implements DependencyGenerator
+public abstract class PythonDependencyGenerator extends DependencyGenerator
 {
     protected static final String ENV_PATH = "env";
     protected static final String REQUIREMENTS_FREEZE_FILE = "requirements.freeze";
@@ -32,6 +32,7 @@ public abstract class PythonDependencyGenerator implements DependencyGenerator
 
     protected PythonDependencyGenerator(PluginsConfigurationProperties properties)
     {
+        super(properties);
         properties.getPluginConfigurationProperty("dependency-checker", "python")
             .ifPresent(pythonConfig ->
             {
@@ -72,12 +73,14 @@ public abstract class PythonDependencyGenerator implements DependencyGenerator
     private Path buildCycloneDxBom(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException
     {
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(pythonCommand(PIP_INSTALL_CYCLONE_DX_COMMAND))
             .build()
             .run();
 
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(pythonCommand(CYCLONE_DX_PY_COMMAND))
             .environment(Map.of("PYTHONPATH", repositoryPath.resolve(ENV_PATH).toString()))

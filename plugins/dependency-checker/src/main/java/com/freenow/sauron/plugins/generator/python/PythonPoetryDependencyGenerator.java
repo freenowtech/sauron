@@ -25,12 +25,14 @@ public class PythonPoetryDependencyGenerator extends PythonDependencyGenerator
     protected void generateRequirementsFreeze(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException
     {
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(pythonCommand(PIP_INSTALL_POETRY))
             .build()
             .run();
 
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(pythonCommand(POETRY_EXPORT))
             .environment(Map.of("PYTHONPATH", repositoryPath.resolve(ENV_PATH).toString()))
