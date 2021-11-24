@@ -20,11 +20,11 @@ public class DependencyGeneratorFactory
         switch (type)
         {
             case MAVEN:
-                return Optional.of(new MavenDependencyGenerator());
+                return Optional.of(new MavenDependencyGenerator(properties));
             case GRADLE_GROOVY:
-                return Optional.of(new GradleGroovyDependencyGenerator());
+                return Optional.of(new GradleGroovyDependencyGenerator(properties));
             case GRADLE_KOTLIN_DSL:
-                return Optional.of(new GradleKotlinDslDependencyGenerator());
+                return Optional.of(new GradleKotlinDslDependencyGenerator(properties));
             case NODEJS:
                 return Optional.of(new NodeJsDependencyGenerator(properties));
             case PYTHON_REQUIREMENTS:

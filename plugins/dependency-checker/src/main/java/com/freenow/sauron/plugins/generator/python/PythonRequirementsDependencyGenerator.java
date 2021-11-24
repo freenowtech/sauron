@@ -37,6 +37,7 @@ public class PythonRequirementsDependencyGenerator extends PythonDependencyGener
     private void pipInstall(Path repositoryPath) throws IOException, InterruptedException
     {
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(pythonCommand(PIP_INSTALL_COMMAND))
             .build()
@@ -47,6 +48,7 @@ public class PythonRequirementsDependencyGenerator extends PythonDependencyGener
     private void pipFreeze(Path repositoryPath) throws IOException, InterruptedException
     {
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(pythonCommand(FREEZE_COMMAND))
             .outputFile(repositoryPath.resolve(REQUIREMENTS_FREEZE_FILE).toFile())

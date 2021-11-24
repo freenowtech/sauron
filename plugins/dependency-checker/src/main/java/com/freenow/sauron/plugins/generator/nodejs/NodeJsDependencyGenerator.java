@@ -11,7 +11,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class NodeJsDependencyGenerator implements DependencyGenerator
+public class NodeJsDependencyGenerator extends DependencyGenerator
 {
     public static class PackageLockJsonMissingException extends IllegalStateException
     {
@@ -35,6 +35,8 @@ public class NodeJsDependencyGenerator implements DependencyGenerator
 
     public NodeJsDependencyGenerator(PluginsConfigurationProperties properties)
     {
+        super(properties);
+
         properties.getPluginConfigurationProperty("dependency-checker", "nodejs")
             .ifPresent(nodeJsConfig ->
             {
@@ -78,6 +80,7 @@ public class NodeJsDependencyGenerator implements DependencyGenerator
         requireNotYarn(repositoryPath);
         requirePackageLockJson(repositoryPath);
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(String.join(" ", npmBin, "ci"))
             .build()
@@ -88,6 +91,7 @@ public class NodeJsDependencyGenerator implements DependencyGenerator
     private Path buildCycloneDxBom(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException
     {
         Command.builder()
+            .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
             .commandline(String.join(" ", npxBin, "@cyclonedx/bom"))
             .build()
