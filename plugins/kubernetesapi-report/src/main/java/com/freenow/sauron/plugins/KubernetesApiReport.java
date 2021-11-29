@@ -57,9 +57,7 @@ public class KubernetesApiReport implements SauronExtension
             properties.getPluginConfigurationProperty(PLUGIN_ID, ENV_VARS_PROPERTY).filter(Map.class::isInstance)
                 .map(Map.class::cast)
                 .map(Map::values)
-                .ifPresent(envVarsProperty ->
-                kubernetesEnvironmentVariablesReader.read(input, serviceLabel, envVarsProperty)
-            );
+                .ifPresent(envVarsProperty -> kubernetesEnvironmentVariablesReader.read(input, serviceLabel, envVarsProperty));
         });
 
         return input;
