@@ -9,9 +9,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.freenow.sauron.plugins.utils.KubernetesConstants.K8S_DEFAULT_NAMESPACE;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -19,7 +21,16 @@ public class KubernetesExecCommand
 {
     private final ApiClient client;
 
+    private static class KubernetesExecCommandException extends Exception
+    {
+        public KubernetesExecCommandException(String message)
+        {
+            super(message);
+        }
+    }
 
+
+    @SneakyThrows(KubernetesExecCommandException.class)
     public Optional<String> exec(String pod, String command)
     {
         String ret = null;
@@ -30,7 +41,7 @@ public class KubernetesExecCommand
                 log.debug("Executing command {} in pod {}", command, pod);
                 Exec exec = new Exec(client);
                 boolean tty = System.console() != null;
-                final Process proc = exec.exec(K8S_DEFAULT_NAMESPACE, pod, command.split(" "), true, tty);
+                final Process proc = exec.exec(K8S_DEFAULT_NAMESPACE, pod, command.split(SPACE), true, tty);
 
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
                 Thread out = newThreadStream(proc.getInputStream(), output);
@@ -59,6 +70,7 @@ public class KubernetesExecCommand
         catch (Exception ex)
         {
             log.error(ex.getMessage(), ex);
+            throw new KubernetesExecCommandException(ex.getMessage());
         }
 
         return Optional.ofNullable(ret);
