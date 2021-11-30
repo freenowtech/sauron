@@ -5,6 +5,7 @@ import com.freenow.sauron.plugins.commands.KubernetesExecCommand;
 import com.freenow.sauron.plugins.commands.KubernetesGetObjectMetaCommand;
 import com.freenow.sauron.plugins.utils.RetryCommand;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
@@ -35,14 +36,26 @@ public class KubernetesEnvironmentVariablesReader
 
     public void read(DataSet input, String serviceLabel, Collection<String> envVarsCheckProperty)
     {
-        kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName())
-            .ifPresent(objectMeta -> new RetryCommand<Void>().run(() -> exec(objectMeta.getName(), input, envVarsCheckProperty)));
+        new RetryCommand<Void>().run(() ->
+        {
+            boolean foundAll = kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName())
+                .map(V1ObjectMeta::getName)
+                .map(podName -> exec(podName, input, envVarsCheckProperty))
+                .orElse(false);
+
+            if (!foundAll)
+            {
+                throw new NoSuchElementException("Not all Environment variables could be found.");
+            }
+
+            return null;
+        });
     }
 
 
-    private Void exec(String name, DataSet input, Collection<String> envVarsCheckProperty)
+    private Boolean exec(String podName, DataSet input, Collection<String> envVarsCheckProperty)
     {
-        boolean foundAll = kubernetesExecCommand.exec(name, ENV_COMMAND).map(ret ->
+        return kubernetesExecCommand.exec(podName, ENV_COMMAND).map(ret ->
         {
             Properties envVars = parse(ret);
             return envVarsCheckProperty.stream().allMatch(check ->
@@ -58,14 +71,7 @@ public class KubernetesEnvironmentVariablesReader
                     return false;
                 }
             });
-        }).orElseThrow();
-
-        if (!foundAll)
-        {
-            throw new NoSuchElementException("Not all Environment variables could be found.");
-        }
-
-        return null;
+        }).orElse(false);
     }
 
 
