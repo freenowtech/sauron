@@ -48,9 +48,25 @@ public class RabbitmqRequestHandler implements RequestHandler
             request.getServiceName(),
             request.getCommitId()));
 
-        SimpleResourceHolder.bind(rabbitTemplate.getConnectionFactory(), ASYNC_CONTAINER_FACTORY);
+        try
+        {
+            SimpleResourceHolder.bind(rabbitTemplate.getConnectionFactory(), ASYNC_CONTAINER_FACTORY);
+        }
+        catch (Exception ignored)
+        {
+            log.info("Skipping bind since it is already bind");
+        }
+
         rabbitTemplate.convertAndSend(SAURON_QUEUE_NAME, request);
-        SimpleResourceHolder.unbind(rabbitTemplate.getConnectionFactory());
+
+        try
+        {
+            SimpleResourceHolder.unbind(rabbitTemplate.getConnectionFactory());
+        }
+        catch (Exception ignored)
+        {
+            log.info("Skipping unbind since it is already unbind");
+        }
     }
 
 
