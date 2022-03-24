@@ -5,7 +5,7 @@
     <artifactId>git-checkout</artifactId>
     <groupId>com.free-now.sauron.plugins</groupId>
     <name>Sauron Git Checkout</name>
-    <version>0.0.17</version>
+    <version>0.0.18-SNAPSHOT</version>
     <description>Sauron GitCheckout Plugin</description>
 
     <url>https://github.com/freenowtech/sauron</url>
@@ -36,7 +36,7 @@
     </properties>
 
     <scm>
-        <tag>git-checkout-0.0.17</tag>
+        <tag>HEAD</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
