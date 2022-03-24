@@ -29,7 +29,7 @@ public class GitCheckout implements SauronExtension
 
             // Checkout the custom repository.
             final String customRepositoryUrl = input.getStringAdditionalInformation("customizedRepositoryUrl").orElse(null);
-            if (customRepositoryUrl != null && !input.getRepositoryUrl().equalsIgnoreCase(customRepositoryUrl))
+            if (customRepositoryUrl != null && !customRepositoryUrl.isBlank() && !input.getRepositoryUrl().equalsIgnoreCase(customRepositoryUrl))
             {
                 destination = checkout(customRepositoryUrl, "master", "custom-" + serviceName, properties);
             }
