@@ -114,7 +114,7 @@
     "description": "git-checkout",
     "releases": [
       {
-        "version": "0.0.14",
+        "version": "0.0.17",
         "date": "2021-03-29T10:23:51Z",
         "url": "https://repo1.maven.org/maven2/com/free-now/sauron/plugins/git-checkout/0.0.14/git-checkout-0.0.14.jar"
       }
