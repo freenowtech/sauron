@@ -6,7 +6,7 @@
     <groupId>com.free-now.sauron.plugins</groupId>
     <name>Sauron Logs Report</name>
     <description>Sauron LogsReport Plugin</description>
-    <version>0.0.6-SNAPSHOT</version>
+    <version>0.0.6</version>
 
     <url>https://github.com/freenowtech/sauron</url>
 
@@ -39,7 +39,7 @@
     </properties>
 
     <scm>
-        <tag>HEAD</tag>
+        <tag>logs-report-0.0.6</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
