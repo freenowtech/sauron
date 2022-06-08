@@ -2,6 +2,7 @@ package com.freenow.sauron.plugins;
 
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,10 +31,10 @@ public class LogsReportTest
 {
     private static final Object LOGSTASH_PAYLOAD = "{\"query\":{\"bool\":{\"must\":[{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"@tags: pla{ENVIRONMENT} AND @source: " +
         "{SERVICENAME}\"}}]," +
-        "\"filter\":[{\"range\":{\"@timestamp\":{\"format\":\"basic_date_time\",\"gte\":\"now-10m\",\"lt\":\"now\"}}}]}}}";
+        "\"filter\":[{\"range\":{\"@timestamp\": {\"gte\": \"{LAST_DEPLOYMENT}\",\"format\": \"epoch_millis\"}}}]}}}";
 
     private static final String FILEBEAT_PAYLOAD = "{\"query\":{\"bool\":{\"filter\":[{\"match_phrase\":{\"environment\":{\"query\":\" {ENVIRONMENT}\"}}}," +
-        "{\"match_phrase\":{\"service.name\":{\"query\":\"{SERVICENAME}\"}}},{\"range\":{\"@timestamp\":{\"format\":\"basic_date_time\",\"gte\":\"now-10m\",\"lt\":\"now\"}}}]}}}";
+        "{\"match_phrase\":{\"service.name\":{\"query\":\"{SERVICENAME}\"}}},{\"range\":{\"@timestamp\": {\"gte\": \"{LAST_DEPLOYMENT}\",\"format\": \"epoch_millis\"}}}]}}}";
 
     public static final String NO_LOGS_FOUND = "{ \"took\": 146, \"hits\": { \"total\": { \"value\": 0 } } }";
 
@@ -129,6 +130,7 @@ public class LogsReportTest
         DataSet dataSet = new DataSet();
         dataSet.setServiceName("my-service");
         dataSet.setAdditionalInformation("environment", "my-env");
+        dataSet.setEventTime(new Date());
         return dataSet;
     }
 
