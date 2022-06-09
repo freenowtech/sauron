@@ -31,10 +31,10 @@ public class LogsReportTest
 {
     private static final Object LOGSTASH_PAYLOAD = "{\"query\":{\"bool\":{\"must\":[{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"@tags: pla{ENVIRONMENT} AND @source: " +
         "{SERVICENAME}\"}}]," +
-        "\"filter\":[{\"range\":{\"@timestamp\": {\"gte\": \"{LAST_DEPLOYMENT}\",\"format\": \"epoch_millis\"}}}]}}}";
+        "\"filter\":[{\"range\":{\"@timestamp\":{\"format\":\"basic_date_time\",\"gte\":\"now-10m\",\"lt\":\"now\"}}}]}}}";
 
     private static final String FILEBEAT_PAYLOAD = "{\"query\":{\"bool\":{\"filter\":[{\"match_phrase\":{\"environment\":{\"query\":\" {ENVIRONMENT}\"}}}," +
-        "{\"match_phrase\":{\"service.name\":{\"query\":\"{SERVICENAME}\"}}},{\"range\":{\"@timestamp\": {\"gte\": \"{LAST_DEPLOYMENT}\",\"format\": \"epoch_millis\"}}}]}}}";
+        "{\"match_phrase\":{\"service.name\":{\"query\":\"{SERVICENAME}\"}}},{\"range\":{\"@timestamp\":{\"format\":\"basic_date_time\",\"gte\":\"now-10m\",\"lt\":\"now\"}}}]}}}";
 
     public static final String NO_LOGS_FOUND = "{ \"took\": 146, \"hits\": { \"total\": { \"value\": 0 } } }";
 
@@ -130,7 +130,6 @@ public class LogsReportTest
         DataSet dataSet = new DataSet();
         dataSet.setServiceName("my-service");
         dataSet.setAdditionalInformation("environment", "my-env");
-        dataSet.setEventTime(new Date());
         return dataSet;
     }
 
