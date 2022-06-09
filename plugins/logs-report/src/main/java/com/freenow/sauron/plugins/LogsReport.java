@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -65,17 +64,14 @@ public class LogsReport implements SauronExtension
                 final String pass = valueOf(properties.getPluginConfigurationProperty(LOGS_REPORT, PASS).get());
                 final String environment = input.getStringAdditionalInformation(ENVIRONMENT).get();
                 final String serviceName = input.getServiceName();
-                final var lastDeployment = valueOf(input.getEventTime().toInstant().toEpochMilli());
 
                 properties.getPluginConfigurationProperty(LOGS_REPORT, "indexes").ifPresent(indexes -> {
                     for (Map.Entry<String, Object> index : ((Map<String, Object>) indexes).entrySet())
                     {
                         final LinkedHashMap<String, Object> indexConfig = (LinkedHashMap<String, Object>) index.getValue();
                         final String indexName = valueOf(indexConfig.get("name"));
-                        final String payload = replaceEach( valueOf(indexConfig.get("payload")),
-                                new String[] {"{ENVIRONMENT}", "{SERVICENAME}", "{LAST_DEPLOYMENT}"},
-                                new String[] {environment, serviceName, lastDeployment}
-                        );
+                        final String payload =
+                            replaceEach(valueOf(indexConfig.get("payload")), new String[] {"{ENVIRONMENT}", "{SERVICENAME}"}, new String[] {environment, serviceName});
                         final String requestUrl = format(valueOf(url), indexName);
 
                         ResponseEntity<String> responseEntity = restTemplate.exchange(requestUrl, POST, new HttpEntity<>(payload, headers(user, pass)), String.class);
