@@ -29,7 +29,6 @@ public class LogsReport implements SauronExtension
     private static final String USER = "user";
     private static final String PASS = "password";
     private static final String ENVIRONMENT = "environment";
-
     private static final int FIVE_SECONDS = 5000;
     private final RestTemplate restTemplate;
     private final ObjectMapper mapper;
@@ -76,9 +75,10 @@ public class LogsReport implements SauronExtension
 
                         ResponseEntity<String> responseEntity = restTemplate.exchange(requestUrl, POST, new HttpEntity<>(payload, headers(user, pass)), String.class);
 
-                        boolean hasLogs = hasLogs(responseEntity);
+                        boolean hasLogs = hasLogs(serviceName, responseEntity);
                         input.setAdditionalInformation("hasLogs", hasLogs);
 
+                        log.debug("{} - {} has Logs: {}", LOGS_REPORT, serviceName, input.getBooleanAdditionalInformation("hasLogs"));
                         if (hasLogs)
                         {
                             break;
@@ -95,7 +95,7 @@ public class LogsReport implements SauronExtension
     }
 
 
-    private boolean hasLogs(final ResponseEntity<String> responseEntity)
+    private boolean hasLogs(final String serviceName, final ResponseEntity<String> responseEntity)
     {
         boolean hasLogs = false;
         try
@@ -105,10 +105,14 @@ public class LogsReport implements SauronExtension
                 JsonNode node = mapper.readTree(responseEntity.getBody());
                 hasLogs = node.get("hits").get("total").get("value").asInt() > 0;
             }
+            else
+            {
+                log.debug("{} - {} - Response not found: {}", LOGS_REPORT, serviceName, responseEntity);
+            }
         }
         catch (Exception ex)
         {
-            log.error("Could not parse response entity: {}", responseEntity.getBody(), ex);
+            log.error("{} - {} - Could not parse response entity: {}", LOGS_REPORT, serviceName, responseEntity.getBody(), ex);
         }
         return hasLogs;
     }
