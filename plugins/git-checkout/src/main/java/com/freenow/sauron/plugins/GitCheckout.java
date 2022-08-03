@@ -3,13 +3,11 @@ package com.freenow.sauron.plugins;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.commands.CloneCommandFactory;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.pf4j.Extension;
 
@@ -31,11 +29,12 @@ public class GitCheckout implements SauronExtension
             final String customRepositoryUrl = input.getStringAdditionalInformation("customizedRepositoryUrl").orElse(null);
             if (customRepositoryUrl != null && !customRepositoryUrl.isBlank() && !input.getRepositoryUrl().equalsIgnoreCase(customRepositoryUrl))
             {
-                destination = checkout(customRepositoryUrl, "master", "custom-" + serviceName, properties);
+                destination = checkout(customRepositoryUrl, null, "custom-" + serviceName, properties);
             }
             input.setAdditionalInformation("customizedRepositoryPath", destination.toFile().getPath());
 
-        } catch (GitAPIException | IOException e)
+        }
+        catch (GitAPIException | IOException e)
         {
             log.error(e.getMessage(), e);
         }
@@ -61,8 +60,12 @@ public class GitCheckout implements SauronExtension
         Path destination = Files.createTempDirectory(checkoutDirectoryName);
         destination.toFile().deleteOnExit();
 
-        CloneCommand command = CloneCommandFactory.instance(repositoryUrl, destination, properties);
-        command.call().checkout().setName(checkoutName).call();
+        Git repo = CloneCommandFactory.instance(repositoryUrl, destination, properties).call();
+        if (checkoutName != null)
+        {
+            repo.checkout().setName(checkoutName).call();
+        }
+
         return destination;
     }
 
