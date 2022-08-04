@@ -1,6 +1,5 @@
 package com.freenow.sauron.plugins.commands;
 
-import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -8,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.CloneCommand;
@@ -17,12 +17,10 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.util.FS;
 
-import static com.freenow.sauron.plugins.utils.CloneCommandHelper.getStringProperty;
-
 @Slf4j
 public final class SshCloneCommand extends CloneCommand
 {
-    SshCloneCommand(String repositoryUrl, Path destination, PluginsConfigurationProperties properties)
+    SshCloneCommand(String repositoryUrl, Path destination, Map<String, Object> properties)
     {
         this.setURI(repositoryUrl).setDirectory(destination.toFile());
         this.setTransportConfigCallback(transport -> {
@@ -32,14 +30,17 @@ public final class SshCloneCommand extends CloneCommand
     }
 
 
-    private SshSessionFactory getSshSessionFactory(PluginsConfigurationProperties properties)
+    private SshSessionFactory getSshSessionFactory(Map<String, Object> properties)
     {
         return new JschConfigSessionFactory()
         {
             @Override
             protected void configure(OpenSshConfig.Host host, Session session)
             {
-                getStringProperty("password", properties).ifPresent(session::setPassword);
+                if (properties.containsKey("password"))
+                {
+                    session.setPassword(String.valueOf(properties.get("password")));
+                }
                 session.setConfig("StrictHostKeyChecking", "no");
             }
 
@@ -60,12 +61,10 @@ public final class SshCloneCommand extends CloneCommand
     }
 
 
-    private Optional<String> getKeyPath(PluginsConfigurationProperties properties, String keyName, String keyFile)
+    private Optional<String> getKeyPath(Map<String, Object> properties, String keyName, String keyFile)
     {
-        return properties.getPluginConfigurationProperty("git-checkout", keyName)
-            .filter(String.class::isInstance)
-            .map(String.class::cast)
-            .map(key -> createNewFile(keyFile, key));
+        return Optional.ofNullable(properties.getOrDefault(keyName, null))
+            .map(key -> createNewFile(keyFile, String.valueOf(properties.get(keyName))));
     }
 
 
