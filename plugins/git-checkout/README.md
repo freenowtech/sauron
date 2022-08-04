@@ -10,7 +10,12 @@ This plugin uses the following configuration:
 
 ```yaml
 sauron.plugins:
-    git-checkout:
+  git-checkout:
+    repositories:
+      - host: <host>
+        user: <user>
+        password: <password>
+      - host: <host>
         publicKey: <git public key>
         privateKey: <git private key>
 ```
