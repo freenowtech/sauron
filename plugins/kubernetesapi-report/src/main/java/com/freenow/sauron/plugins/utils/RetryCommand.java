@@ -34,7 +34,7 @@ public class RetryCommand<T>
         }
         catch (Exception ex)
         {
-            log.error("FAILED - Command failed, will be retried {} times. Error: {}", maxRetries, ex.getMessage());
+            log.warn("FAILED - Command failed, will be retried {} times. Error: {}", maxRetries, ex.getMessage());
             return retry(function);
         }
     }
@@ -54,15 +54,15 @@ public class RetryCommand<T>
             catch (Exception ex)
             {
                 retryCounter++;
-                log.error("FAILED - Command failed on retry {} of {}. Error: {}", retryCounter, maxRetries, ex.getMessage());
+                log.warn("FAILED - Command failed on retry {} of {}. Error: {}", retryCounter, maxRetries, ex.getMessage());
                 if (retryCounter >= maxRetries)
                 {
-                    log.error("FAILED - Max retries exceeded.");
+                    log.warn("FAILED - Max retries exceeded.");
                     break;
                 }
             }
         }
-        log.error("Command failed on all of {} retries", maxRetries);
+        log.warn("Command failed on all of {} retries", maxRetries);
         return null;
     }
 }
