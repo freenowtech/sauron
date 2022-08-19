@@ -9,23 +9,23 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class KubernetesLabelAnnotationReader
 {
-    private final KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand;
+    private KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand = new KubernetesGetObjectMetaCommand();
 
 
-    public KubernetesLabelAnnotationReader(ApiClient client)
+    public KubernetesLabelAnnotationReader(final KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand)
     {
-        this.kubernetesGetObjectMetaCommand = new KubernetesGetObjectMetaCommand(client);
+        this.kubernetesGetObjectMetaCommand = kubernetesGetObjectMetaCommand;
     }
 
 
-    public void read(DataSet input, String serviceLabel, Map<String, Map<?, ?>> resourceFiltersProperty)
+    public void read(DataSet input, String serviceLabel, Map<String, Map<?, ?>> resourceFiltersProperty, ApiClient apiClient)
     {
         try
         {
@@ -35,7 +35,8 @@ public class KubernetesLabelAnnotationReader
                 Optional<V1ObjectMeta> objectMetaOpt = kubernetesGetObjectMetaCommand.get(
                     String.valueOf(serviceLabel),
                     KubernetesResources.fromString(String.valueOf(entry.getKey())),
-                    input.getServiceName());
+                    input.getServiceName(),
+                    apiClient);
 
                 if (objectMetaOpt.isPresent())
                 {

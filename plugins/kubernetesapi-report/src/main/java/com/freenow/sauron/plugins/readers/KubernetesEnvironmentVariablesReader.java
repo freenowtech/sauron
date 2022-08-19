@@ -27,20 +27,20 @@ public class KubernetesEnvironmentVariablesReader
     private final KubernetesExecCommand kubernetesExecCommand;
 
 
-    public KubernetesEnvironmentVariablesReader(ApiClient client)
+    public KubernetesEnvironmentVariablesReader()
     {
-        this.kubernetesGetObjectMetaCommand = new KubernetesGetObjectMetaCommand(client);
-        this.kubernetesExecCommand = new KubernetesExecCommand(client);
+        this.kubernetesGetObjectMetaCommand = new KubernetesGetObjectMetaCommand();
+        this.kubernetesExecCommand = new KubernetesExecCommand();
     }
 
 
-    public void read(DataSet input, String serviceLabel, Collection<String> envVarsCheckProperty)
+    public void read(DataSet input, String serviceLabel, Collection<String> envVarsCheckProperty, ApiClient apiClient)
     {
         new RetryCommand<Void>().run(() ->
         {
-            boolean foundAll = kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName())
+            boolean foundAll = kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName(), apiClient)
                 .map(V1ObjectMeta::getName)
-                .map(podName -> exec(podName, input, envVarsCheckProperty))
+                .map(podName -> exec(podName, input, envVarsCheckProperty, apiClient))
                 .orElse(false);
 
             if (!foundAll)
@@ -53,9 +53,9 @@ public class KubernetesEnvironmentVariablesReader
     }
 
 
-    private Boolean exec(String podName, DataSet input, Collection<String> envVarsCheckProperty)
+    private Boolean exec(String podName, DataSet input, Collection<String> envVarsCheckProperty, ApiClient apiClient)
     {
-        return kubernetesExecCommand.exec(podName, ENV_COMMAND).map(ret ->
+        return kubernetesExecCommand.exec(podName, ENV_COMMAND, apiClient).map(ret ->
         {
             Properties envVars = parse(ret);
             return envVarsCheckProperty.stream().allMatch(check ->
