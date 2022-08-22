@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,11 +15,8 @@ import static com.freenow.sauron.plugins.utils.KubernetesConstants.K8S_DEFAULT_N
 import static org.apache.commons.lang3.StringUtils.SPACE;
 
 @Slf4j
-@RequiredArgsConstructor
 public class KubernetesExecCommand
 {
-    private final ApiClient client;
-
     private static class KubernetesExecCommandException extends Exception
     {
         public KubernetesExecCommandException(String message)
@@ -31,7 +27,7 @@ public class KubernetesExecCommand
 
 
     @SneakyThrows(KubernetesExecCommandException.class)
-    public Optional<String> exec(String pod, String command)
+    public Optional<String> exec(String pod, String command, ApiClient client)
     {
         String ret = null;
         try

@@ -17,7 +17,6 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1beta1CronJob;
 import java.util.Optional;
 import java.util.Random;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.freenow.sauron.plugins.utils.KubernetesConstants.K8S_API_TIMEOUT_SECONDS;
@@ -25,20 +24,16 @@ import static com.freenow.sauron.plugins.utils.KubernetesConstants.K8S_DEFAULT_N
 import static com.freenow.sauron.plugins.utils.KubernetesConstants.K8S_PRETTY_OUTPUT;
 
 @Slf4j
-@RequiredArgsConstructor
 public class KubernetesGetObjectMetaCommand
 {
-    private final ApiClient client;
-
     private static final Random RANDOM = new Random();
 
 
-    public Optional<V1ObjectMeta> get(String serviceLabel, KubernetesResources resource, String service)
+    public Optional<V1ObjectMeta> get(String serviceLabel, KubernetesResources resource, String service, ApiClient client)
     {
         try
         {
             String labelSelector = String.format("%s=%s", serviceLabel, service);
-
             log.debug("Filtering resource {} using selector {}", resource, labelSelector);
 
             switch (resource)
