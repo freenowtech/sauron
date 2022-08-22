@@ -6,7 +6,7 @@
     <groupId>com.free-now.sauron.plugins</groupId>
     <name>Sauron Kubernetes Api Report</name>
     <description>Sauron KubernetesApiReport Plugin</description>
-    <version>0.0.12-SNAPSHOT</version>
+    <version>0.0.12</version>
 
     <url>https://github.com/freenowtech/sauron</url>
 
@@ -36,7 +36,7 @@
     </properties>
 
     <scm>
-        <tag>HEAD</tag>
+        <tag>kubernetesapi-report-0.0.12</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
