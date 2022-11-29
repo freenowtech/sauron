@@ -14,7 +14,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static com.freenow.sauron.plugins.ProjectType.*;
+import static com.freenow.sauron.plugins.ProjectType.CLOJURE;
+import static com.freenow.sauron.plugins.ProjectType.GRADLE_GROOVY;
+import static com.freenow.sauron.plugins.ProjectType.GRADLE_KOTLIN_DSL;
+import static com.freenow.sauron.plugins.ProjectType.MAVEN;
+import static com.freenow.sauron.plugins.ProjectType.NODEJS;
+import static com.freenow.sauron.plugins.ProjectType.PYTHON_POETRY;
+import static com.freenow.sauron.plugins.ProjectType.PYTHON_REQUIREMENTS;
+import static com.freenow.sauron.plugins.ProjectType.SBT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -77,7 +84,7 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", NODEJS.toString());
         // includes production dependencies
-        checkKeyPresent(plugin.dependenciesModel, "org.npmjs:react", "16.13.1");
+        checkKeyPresent(plugin.dependenciesModel, "org.npmjs:react", "18.0.0");
         // excludes development dependencies
         checkKeyNotPresent(plugin.dependenciesModel, "org.npmjs:@testing-library/react");
     }

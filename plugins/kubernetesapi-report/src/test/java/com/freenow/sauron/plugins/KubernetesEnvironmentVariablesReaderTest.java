@@ -4,6 +4,7 @@ import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.commands.KubernetesExecCommand;
 import com.freenow.sauron.plugins.commands.KubernetesGetObjectMetaCommand;
 import com.freenow.sauron.plugins.readers.KubernetesEnvironmentVariablesReader;
+import com.freenow.sauron.plugins.utils.RetryConfig;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import java.util.Collection;
@@ -20,6 +21,8 @@ import static com.freenow.sauron.plugins.utils.KubernetesResources.POD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -40,6 +43,9 @@ public class KubernetesEnvironmentVariablesReaderTest
     @Mock
     private KubernetesExecCommand kubernetesExecCommand;
 
+    @Mock
+    private RetryConfig retryConfig;
+
     @InjectMocks
     private KubernetesEnvironmentVariablesReader kubernetesEnvironmentVariablesReader;
 
@@ -51,7 +57,8 @@ public class KubernetesEnvironmentVariablesReaderTest
         final var input = dummyDataSet();
 
         when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
-        when(kubernetesExecCommand.exec(objMetaData.get().getName(), ENV_COMMAND, apiClient)).thenReturn(localEnvVars());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(localEnvVars());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_VERSION), apiClient)).thenReturn(localEnvVars());
 
         kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
         assertNotNull(input);
@@ -61,9 +68,28 @@ public class KubernetesEnvironmentVariablesReaderTest
 
 
     @Test
-    public void readDontModifyInputWhenMetaDataNotFound()
+    public void noEnvVarsFoundOnPOD()
     {
         final var objMetaData = createObjMetaData();
+        final var input = dummyDataSet();
+
+        when(retryConfig.getMaxRetries()).thenReturn(1);
+        when(retryConfig.getBackoffSeconds()).thenReturn(1);
+        when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(localEnvVars());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_VERSION), apiClient)).thenReturn(Optional.empty());
+
+        kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
+        assertNotNull(input);
+        assertFalse(input.getStringAdditionalInformation(ENV_ENABLED).isPresent());
+        assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
+        verify(kubernetesGetObjectMetaCommand, times(2)).get(SERVICE_LABEL, POD, "", apiClient);
+    }
+
+
+    @Test
+    public void readDontModifyInputWhenMetaDataNotFound()
+    {
         final var input = dummyDataSet();
 
         when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(Optional.empty());
@@ -81,12 +107,11 @@ public class KubernetesEnvironmentVariablesReaderTest
         final var input = dummyDataSet();
 
         when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
-        when(kubernetesExecCommand.exec(objMetaData.get().getName(), ENV_COMMAND, apiClient)).thenReturn(Optional.empty());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(Optional.empty());
 
         kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
         assertNotNull(input);
         assertFalse(input.getStringAdditionalInformation(ENV_ENABLED).isPresent());
-        assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
     }
 
 

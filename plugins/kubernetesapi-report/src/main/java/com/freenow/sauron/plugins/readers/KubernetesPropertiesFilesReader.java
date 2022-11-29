@@ -9,8 +9,9 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Collection;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Properties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,18 +20,15 @@ import static com.freenow.sauron.plugins.utils.KubernetesResources.POD;
 
 @Slf4j
 @RequiredArgsConstructor
-public class KubernetesEnvironmentVariablesReader
+public class KubernetesPropertiesFilesReader
 {
-    private static final String ENV_COMMAND = "bash -l -c env";
-
+    private static final String ENV_COMMAND = "cat %s";
     private final KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand;
-
     private final KubernetesExecCommand kubernetesExecCommand;
-
     private final RetryConfig retryConfig;
 
 
-    public KubernetesEnvironmentVariablesReader()
+    public KubernetesPropertiesFilesReader()
     {
         this.kubernetesGetObjectMetaCommand = new KubernetesGetObjectMetaCommand();
         this.kubernetesExecCommand = new KubernetesExecCommand();
@@ -38,43 +36,56 @@ public class KubernetesEnvironmentVariablesReader
     }
 
 
-    public void read(DataSet input, String serviceLabel, Collection<String> envVarsCheckProperty, ApiClient apiClient)
+    public void read(DataSet input, String serviceLabel, Map<String, Map<String, String>> propertiesFilesCheck, ApiClient apiClient)
     {
         new RetryCommand<Void>(retryConfig).run(() ->
         {
             boolean foundAll = kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName(), apiClient)
                 .map(V1ObjectMeta::getName)
-                .map(podName -> exec(podName, input, envVarsCheckProperty, apiClient))
+                .map(podName -> exec(podName, input, propertiesFilesCheck, apiClient))
                 .orElse(false);
 
             if (!foundAll)
             {
-                throw new NoSuchElementException("Not all Environment variables could be found.");
+                throw new NoSuchElementException(String.format("Properties %s not found.", propertiesFilesCheck));
             }
             return null;
         });
     }
 
 
-    private Boolean exec(String podName, DataSet input, Collection<String> envVarsCheckProperty, ApiClient apiClient)
+    private Boolean exec(final String podName, DataSet input, final Map<String, Map<String, String>> propertiesFilesCheck, final ApiClient apiClient)
     {
-        return kubernetesExecCommand.exec(podName, ENV_COMMAND, apiClient).map(ret ->
-        {
-            Properties envVars = parse(ret);
-            return envVarsCheckProperty.stream().allMatch(check ->
+        return propertiesFilesCheck.entrySet().stream().allMatch(it -> {
+            Optional<String> podFileProps = kubernetesExecCommand.exec(podName, String.format(ENV_COMMAND, it.getKey()), apiClient);
+            if (podFileProps.isPresent())
             {
-                if (envVars.containsKey(check))
-                {
-                    input.setAdditionalInformation(check, envVars.get(check));
-                    return true;
-                }
-                else
-                {
-                    log.warn(String.format("Environment variable %s could not be found", check));
-                    return false;
-                }
-            });
-        }).orElse(false);
+                Properties props = parse(podFileProps.get());
+                return matchProps(input, it.getKey(), it.getValue(), props);
+            }
+            else
+            {
+                log.info("Properties not found in {} at POD {}", it.getKey(), podName);
+                return false;
+            }
+        });
+    }
+
+
+    private boolean matchProps(DataSet input, String propFilePath, Map<String, String> propKeys, Properties props)
+    {
+        return propKeys.entrySet().stream().allMatch(prop -> {
+            if (props.containsKey(prop.getValue()))
+            {
+                input.setAdditionalInformation(prop.getKey(), props.get(prop.getValue()));
+                return true;
+            }
+            else
+            {
+                log.info("Property Key {}, not found at {}", prop.getValue(), propFilePath);
+                return false;
+            }
+        });
     }
 
 

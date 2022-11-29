@@ -9,11 +9,12 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 python = "^3.7.0"
 boto3 = "1.17.105"
+packaging = "21.3"
 
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0.1"
 
 [build-system]
-requires = ["poetry>=1.0.9"]
+requires = ["poetry=1.1.15"]
 build-backend = "poetry.masonry.api"

@@ -19,7 +19,7 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -61,7 +61,7 @@ public class KubernetesLabelAnnotationReaderTest
         kubernetesLabelAnnotationReader.read(input, SERVICE_LABEL, emptyMap(), apiClient);
         assertNotNull(input);
         assertEquals(input, dummyDataSet());
-        verifyZeroInteractions(kubernetesGetObjectMetaCommand);
+        verifyNoInteractions(kubernetesGetObjectMetaCommand);
     }
 
 
