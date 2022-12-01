@@ -27,7 +27,7 @@ public class KubernetesEnvironmentVariablesReaderTest
 {
     private static final String SERVICE_LABEL = "label/service.name";
     private static final String SERVICE_NAME = "serviceName";
-    private static final String ENV_COMMAND = "bash -l -c env";
+    private static final String ENV_COMMAND = "bash -l -c env | grep ^%s";
     private static final String ENV_ENABLED = "ENV_ENABLED";
     private static final String ENV_VERSION = "ENV_VERSION";
 
@@ -51,7 +51,8 @@ public class KubernetesEnvironmentVariablesReaderTest
         final var input = dummyDataSet();
 
         when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
-        when(kubernetesExecCommand.exec(objMetaData.get().getName(), ENV_COMMAND, apiClient)).thenReturn(localEnvVars());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(localEnvVars());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_VERSION), apiClient)).thenReturn(localEnvVars());
 
         kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
         assertNotNull(input);
@@ -61,9 +62,25 @@ public class KubernetesEnvironmentVariablesReaderTest
 
 
     @Test
-    public void readDontModifyInputWhenMetaDataNotFound()
+    public void noEnvVarsFoundOnPOD()
     {
         final var objMetaData = createObjMetaData();
+        final var input = dummyDataSet();
+
+        when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(localEnvVars());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_VERSION), apiClient)).thenReturn(Optional.empty());
+
+        kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
+        assertNotNull(input);
+        assertEquals("true", input.getStringAdditionalInformation(ENV_ENABLED).get());
+        assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
+    }
+
+
+    @Test
+    public void readDontModifyInputWhenMetaDataNotFound()
+    {
         final var input = dummyDataSet();
 
         when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(Optional.empty());
@@ -81,12 +98,11 @@ public class KubernetesEnvironmentVariablesReaderTest
         final var input = dummyDataSet();
 
         when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
-        when(kubernetesExecCommand.exec(objMetaData.get().getName(), ENV_COMMAND, apiClient)).thenReturn(Optional.empty());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(Optional.empty());
 
         kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
         assertNotNull(input);
         assertFalse(input.getStringAdditionalInformation(ENV_ENABLED).isPresent());
-        assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
     }
 
 
