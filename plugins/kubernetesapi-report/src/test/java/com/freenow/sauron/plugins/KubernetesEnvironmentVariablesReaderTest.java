@@ -30,7 +30,7 @@ public class KubernetesEnvironmentVariablesReaderTest
 {
     private static final String SERVICE_LABEL = "label/service.name";
     private static final String SERVICE_NAME = "serviceName";
-    private static final String ENV_COMMAND = "bash -l -c env";
+    private static final String ENV_COMMAND = "bash -l -c env | grep ^%s";
     private static final String ENV_ENABLED = "ENV_ENABLED";
     private static final String ENV_VERSION = "ENV_VERSION";
 

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Properties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import static com.freenow.sauron.plugins.utils.KubernetesResources.POD;
 @RequiredArgsConstructor
 public class KubernetesEnvironmentVariablesReader
 {
-    private static final String ENV_COMMAND = "bash -l -c env";
+    private static final String ENV_COMMAND = "bash -l -c env | grep ^%s";
 
     private final KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand;
 
@@ -49,7 +50,7 @@ public class KubernetesEnvironmentVariablesReader
 
             if (!foundAll)
             {
-                throw new NoSuchElementException("Not all Environment variables could be found.");
+                throw new NoSuchElementException(String.format("Environment variables %s not found.", envVarsCheckProperty));
             }
             return null;
         });
@@ -58,23 +59,31 @@ public class KubernetesEnvironmentVariablesReader
 
     private Boolean exec(String podName, DataSet input, Collection<String> envVarsCheckProperty, ApiClient apiClient)
     {
-        return kubernetesExecCommand.exec(podName, ENV_COMMAND, apiClient).map(ret ->
+        var found = false;
+        for (var envVarToCheck : envVarsCheckProperty)
         {
-            Properties envVars = parse(ret);
-            return envVarsCheckProperty.stream().allMatch(check ->
+            Optional<String> podEnvVars = kubernetesExecCommand.exec(podName, String.format(ENV_COMMAND, envVarToCheck), apiClient);
+            if (podEnvVars.isPresent())
             {
-                if (envVars.containsKey(check))
+                Properties props = parse(podEnvVars.get());
+                if (props.containsKey(envVarToCheck))
                 {
-                    input.setAdditionalInformation(check, envVars.get(check));
-                    return true;
+                    input.setAdditionalInformation(envVarToCheck, props.get(envVarToCheck));
+                    found = true;
                 }
                 else
                 {
-                    log.warn(String.format("Environment variable %s could not be found", check));
+                    log.warn(String.format("Environment variable %s, not found in %s", envVarToCheck, props));
                     return false;
                 }
-            });
-        }).orElse(false);
+            }
+            else
+            {
+                log.warn(String.format("Environment variables %s not found at POD %s", envVarToCheck, podName));
+                return false;
+            }
+        }
+        return found;
     }
 
 

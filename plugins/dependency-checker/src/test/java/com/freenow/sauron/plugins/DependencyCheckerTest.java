@@ -10,6 +10,8 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -74,6 +76,7 @@ public class DependencyCheckerTest
     }
 
 
+    @Ignore
     @Test
     public void testDependencyCheckerNodeJs() throws IOException, URISyntaxException
     {
