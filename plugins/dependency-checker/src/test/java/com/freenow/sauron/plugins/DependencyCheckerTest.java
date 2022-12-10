@@ -80,7 +80,7 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", NODEJS.toString());
         // includes production dependencies
-        checkKeyPresent(plugin.dependenciesModel, "org.npmjs:react", "16.13.1");
+        checkKeyPresent(plugin.dependenciesModel, "org.npmjs:react", "18.0.0");
         // excludes development dependencies
         checkKeyNotPresent(plugin.dependenciesModel, "org.npmjs:@testing-library/react");
     }

@@ -7,6 +7,7 @@ import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,7 +17,7 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
     protected static final String ENV_PATH = "env";
     protected static final String REQUIREMENTS_FREEZE_FILE = "requirements.freeze";
 
-    private static final String PIP_INSTALL_CYCLONE_DX_COMMAND = "-m pip install --target env cyclonedx-bom";
+    private static final String PIP_INSTALL_CYCLONE_DX_COMMAND = "-m pip install --target env cyclonedx-bom --ignore-installed packaging";
     private static final String CYCLONE_DX_PY_COMMAND = "-m env.cyclonedx_py -r -i requirements.freeze -o bom.xml";
 
     public static class RequirementsFreezeMissingException extends IllegalStateException
@@ -92,9 +93,9 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
     }
 
 
-    protected String pythonCommand(String parameters)
+    protected List<String> pythonCommand(String parameters)
     {
-        return String.join(" ", python, parameters);
+        return List.of(python, parameters);
     }
 
 
