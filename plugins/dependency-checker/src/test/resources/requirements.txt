@@ -1,3 +1,4 @@
 boto3==1.17.105
 requests
 eventlet
+packaging==21.3
