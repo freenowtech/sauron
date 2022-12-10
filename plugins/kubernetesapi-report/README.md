@@ -12,23 +12,32 @@ This plugin uses the following configuration:
 
 ```yaml
 sauron.plugins:
-    kubernetesapi-report:
-        serviceLabel: "label/service.name" # The label that will used as a selector to find the resource by serviceName
-        selectors:
-            pod:
-                - label
-                - annotation
-            deployment:
-                - label
-                - annotation
-        environmentVariablesCheck:
-            - MY_ENV_VAR
-        # When checks are needed in different clusters:
-        #  - deploy https://hub.docker.com/r/bitnami/kubectl/ as service in the desired cluster
-        #  - set below the url for the cluster     
-        apiClientConfig:
-          default: "default"
-          clusterName: "cluster-url"
+  kubernetesapi-report:
+    serviceLabel: "label/service.name" # The label that will used as a selector to find the resource by serviceName
+    # When checks are needed in different clusters:
+    #  - deploy https://hub.docker.com/r/bitnami/kubectl/ as service in the desired cluster
+    #  - set below the url for the cluster     
+    apiClientConfig:
+      default: "default"
+      clusterName: "cluster-url"
+    selectors:
+      pod:
+        - label
+        - annotation
+      deployment:
+        - label
+        - annotation
+    environmentVariablesCheck:
+      - MY_ENV_VAR
+    # Reading values from Property files:
+    #  - [/path/to/file_a.props] - is the path to a file in a POD 
+    #    "THE_OUTPUT_KEY" - is the output key to be appended in the input dataset
+    #    "the.prop.key.in.the.file" - is the prop key used to extract the value from the property file.  
+    propertiesFilesCheck:
+      "[/path/to/file_a.props]":
+        "THE_OUTPUT_KEY": "the.prop.key.in.the.file"
+      "[/path/to/file_b.env]":
+        "ANOTHER_OUTPUT_KEY": "the.prop.key.in.the.file"
 ```
 
 The possible selectors can be found in
@@ -42,3 +51,4 @@ The possible selectors can be found in
 
 - All the selector's value that can be found assigned to the specified resources
 - All the environment variables and its values that were found in the running pod
+- All the values found in the property files for the running pod
