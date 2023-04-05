@@ -7,9 +7,14 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.NormalizeDependencyVersion;
 import com.freenow.sauron.plugins.ProjectType;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static ch.qos.logback.core.CoreConstants.EMPTY_STRING;
 
 public class DependenciesModel extends HashMap<String, Object>
 {
@@ -32,6 +37,12 @@ public class DependenciesModel extends HashMap<String, Object>
             String value = String.valueOf(dependency.get("version"));
             this.put(key, value);
             this.put(key.concat("-normalized"), NormalizeDependencyVersion.toMajorMinorIncremental(value));
+
+            List<Map> licenses = (List<Map>) Optional.ofNullable(dependency.getOrDefault("licenses", Collections.emptyList())).orElse(Collections.emptyList());
+            this.put(key.concat("-license"), licenses.stream().findFirst().map(license -> license.getOrDefault("id", EMPTY_STRING)).orElse(EMPTY_STRING));
+            List<Map> allLicenses = (List<Map>) this.getOrDefault("licenses", new ArrayList());
+            allLicenses.addAll(licenses);
+            this.put("licenses", allLicenses);
         });
     }
 
