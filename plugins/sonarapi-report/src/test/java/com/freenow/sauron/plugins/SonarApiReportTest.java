@@ -36,7 +36,7 @@ public class SonarApiReportTest
         Mockito.when(restTemplate.exchange(contains("com.freenow"), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class))).thenReturn(ResponseEntity.of(Optional.of("{" +
             "    \"component\": {" +
             "        \"id\": \"AWikREXpXMApLJgibWTR\"," +
-            "        \"key\": \"com.mytaxi:oauthservice:master\"," +
+            "        \"key\": \"com.mytaxi:oauthservice\"," +
             "        \"name\": \"oauthservice master\"," +
             "        \"description\": \"OAuth service\"," +
             "        \"qualifier\": \"TRK\"," +

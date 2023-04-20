@@ -128,7 +128,7 @@ public class SonarApiReport implements SauronExtension
 
     private String buildUrl(final String uri, final String serviceName, final String groupId)
     {
-        return (baseUrl + uri).replace("component=?", "component=" + groupId + ":" + serviceName + ":master");
+        return (baseUrl + uri).replace("component=?", "component=" + groupId + ":" + serviceName);
     }
 
 
