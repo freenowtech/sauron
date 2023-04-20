@@ -26,7 +26,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libc6-dev \
       libbz2-dev \
       libffi-dev \
-      zlib1g-dev
+      zlib1g-dev \
+      python3-dev \
+      libpcap-dev \
+      libpq-dev \
+      libldap2-dev \
+      libsasl2-dev \
+      ldap-utils
 
 # Installing NodeJS
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
@@ -46,6 +52,9 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # Installing Poetry
 RUN python -m pip install poetry==1.1.7
+
+# Upgrade Pip
+RUN python -m pip install --upgrade pip
 
 RUN mkdir /root/.m2
 
