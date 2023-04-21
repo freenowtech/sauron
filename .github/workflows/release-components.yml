@@ -95,7 +95,7 @@ jobs:
         with:
           name: freenowtech/sauron/sauron-service
           username: ${{ secrets.FREE_NOW_GITHUB_USER }}
-          password: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
           default_branch: main
           workdir: sauron-service/
           registry: ghcr.io
