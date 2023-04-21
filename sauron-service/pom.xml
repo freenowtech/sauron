@@ -35,6 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
+        <scm.url>scm:git:git@github.com:freenowtech/sauron.git</scm.url>
         <pf4j-update.version>2.3.0</pf4j-update.version>
         <artifactory-java-client-services.version>2.9.2</artifactory-java-client-services.version>
         <spring-cloud.version>Hoxton.SR7</spring-cloud.version>
@@ -44,7 +45,8 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <scm.url>scm:git:git@github.com:freenowtech/sauron.git</scm.url>
+        <logback-json-classic.version>0.1.5</logback-json-classic.version>
+        <logback-jackson.version>0.1.5</logback-jackson.version>
     </properties>
 
     <scm>
@@ -174,6 +176,19 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>ch.qos.logback.contrib</groupId>
+            <artifactId>logback-json-classic</artifactId>
+            <version>${logback-json-classic.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback.contrib</groupId>
+            <artifactId>logback-jackson</artifactId>
+            <version>${logback-jackson.version}</version>
         </dependency>
     </dependencies>
 
