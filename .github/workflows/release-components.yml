@@ -78,18 +78,11 @@ jobs:
 
       - name: Github Release
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
-        uses: marvinpinto/action-automatic-releases@v1.2.1
+        uses: ncipollo/release-action@v1
         with:
-          repo_token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
-          prerelease: false
-          automatic_release_tag: ${{ steps.previoustag.outputs.tag }}
-          files: |
-            LICENSE
-            SECURITY.md
-            sauron-service/target/*.pom?(.)*
-            sauron-service/target/*.jar?(.)*
-            sauron-service/target/*-sources.jar?(.)*
-            sauron-service/target/*-javadoc.jar?(.)*
+          token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
+          artifacts: "LICENSE, SECURITY.md, sauron-service/target/*.pom?(.)*, sauron-service/target/*.jar?(.)*, sauron-service/target/*-sources.jar?(.)*, sauron-service/target/*-javadoc.jar?(.)*release.tar.gz,foo/*.txt"
+          name: ${{ steps.previoustag.outputs.tag }}
 
       - name: Extract version
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
