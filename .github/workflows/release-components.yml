@@ -28,48 +28,48 @@ jobs:
         with:
           java-version: 11
 
-      - name: Check for changes
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            sauron-service:
-              - 'sauron-service/**'
-            src:
-              - '${{ matrix.path }}**'
+#       - name: Check for changes
+#         uses: dorny/paths-filter@v2
+#         id: changes
+#         with:
+#           filters: |
+#             sauron-service:
+#               - 'sauron-service/**'
+#             src:
+#               - '${{ matrix.path }}**'
 
-      - name: Update local git repository. It is needed because other jobs might have released a new version
-        run: git pull
+#       - name: Update local git repository. It is needed because other jobs might have released a new version
+#         run: git pull
 
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+#       - name: Cache Maven packages
+#         uses: actions/cache@v2
+#         with:
+#           path: ~/.m2
+#           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+#           restore-keys: ${{ runner.os }}-m2
 
-      - name: Maven release and publish
-        if: steps.changes.outputs.src == 'true'
-        uses: qcastel/github-actions-maven-release@v1.12.17
-        continue-on-error: true
-        with:
-          access-token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
-          release-branch-name: "main"
-          maven-args: "-DskipTests -DskipITs"
-          git-release-bot-name: "free-now-github"
-          git-release-bot-email: "70742378+free-now-github@users.noreply.github.com"
-          git-skip-sanity-check: true
-          ssh-private-key: ${{ secrets.FREE_NOW_GITHUB_PRIVATE_KEY }}
-          maven-project-folder: ${{ matrix.path }}
-          maven-repo-server-id: ossrh
-          maven-repo-server-username: ${{ secrets.FREE_NOW_GITHUB_USER }}
-          maven-repo-server-password: ${{ secrets.FREE_NOW_MAVEN_ACCESS_TOKEN }}
-          gpg-enabled: true
-          gpg-key-id: ${{ secrets.FREE_NOW_GPG_KEY_ID }}
-          gpg-key: ${{ secrets.FREE_NOW_GPG_KEY }}
-          gpg-passphrase: ${{ secrets.FREE_NOW_GPG_PASSPHRASE }}
-        env:
-          JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
+#       - name: Maven release and publish
+#         if: steps.changes.outputs.src == 'true'
+#         uses: qcastel/github-actions-maven-release@v1.12.17
+#         continue-on-error: true
+#         with:
+#           access-token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
+#           release-branch-name: "main"
+#           maven-args: "-DskipTests -DskipITs"
+#           git-release-bot-name: "free-now-github"
+#           git-release-bot-email: "70742378+free-now-github@users.noreply.github.com"
+#           git-skip-sanity-check: true
+#           ssh-private-key: ${{ secrets.FREE_NOW_GITHUB_PRIVATE_KEY }}
+#           maven-project-folder: ${{ matrix.path }}
+#           maven-repo-server-id: ossrh
+#           maven-repo-server-username: ${{ secrets.FREE_NOW_GITHUB_USER }}
+#           maven-repo-server-password: ${{ secrets.FREE_NOW_MAVEN_ACCESS_TOKEN }}
+#           gpg-enabled: true
+#           gpg-key-id: ${{ secrets.FREE_NOW_GPG_KEY_ID }}
+#           gpg-key: ${{ secrets.FREE_NOW_GPG_KEY }}
+#           gpg-passphrase: ${{ secrets.FREE_NOW_GPG_PASSPHRASE }}
+#         env:
+#           JAVA_HOME: /usr/lib/jvm/java-11-openjdk/
 
       - name: Get previous tag
         if: steps.changes.outputs.src == 'true'
@@ -80,7 +80,6 @@ jobs:
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
         uses: ncipollo/release-action@v1
         with:
-          token: ${{ secrets.FREE_NOW_GITHUB_ACCESS_TOKEN }}
           artifacts: "LICENSE, SECURITY.md, sauron-service/target/*.pom?(.)*, sauron-service/target/*.jar?(.)*, sauron-service/target/*-sources.jar?(.)*, sauron-service/target/*-javadoc.jar?(.)*release.tar.gz,foo/*.txt"
           name: ${{ steps.previoustag.outputs.tag }}
           tag: ${{ steps.previoustag.outputs.tag }}
