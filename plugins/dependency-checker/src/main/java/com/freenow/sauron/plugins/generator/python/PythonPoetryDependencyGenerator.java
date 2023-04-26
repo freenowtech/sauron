@@ -1,18 +1,21 @@
 package com.freenow.sauron.plugins.generator.python;
 
 import com.freenow.sauron.plugins.command.Command;
-import com.freenow.sauron.plugins.command.NonZeroExitCodeException;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.freenow.sauron.plugins.command.Command.BASH_C_OPTION;
+import static com.freenow.sauron.plugins.command.Command.BIN_BASH;
+import static com.freenow.sauron.plugins.command.Command.AND;
 
 @Slf4j
 public class PythonPoetryDependencyGenerator extends PythonDependencyGenerator
 {
-    private static final String PIP_INSTALL_POETRY = "-m pip install --target env poetry==1.1.15";
-    private static final String POETRY_EXPORT = "-m poetry export --output requirements.freeze --without-hashes";
+    private static final String PIP_INSTALL_POETRY = "python -m pip install poetry==1.1.15";
+    private static final String POETRY_EXPORT = "python -m poetry export --output requirements.freeze --without-hashes";
 
 
     public PythonPoetryDependencyGenerator(PluginsConfigurationProperties properties)
@@ -22,21 +25,30 @@ public class PythonPoetryDependencyGenerator extends PythonDependencyGenerator
 
 
     @Override
-    protected void generateRequirementsFreeze(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException
+    protected void generateRequirementsFreeze(Path repositoryPath)
     {
-        Command.builder()
-            .commandTimeout(commandTimeoutMinutes)
-            .repositoryPath(repositoryPath)
-            .commandline(pythonCommand(PIP_INSTALL_POETRY))
-            .build()
-            .run();
-
-        Command.builder()
-            .commandTimeout(commandTimeoutMinutes)
-            .repositoryPath(repositoryPath)
-            .commandline(pythonCommand(POETRY_EXPORT))
-            .environment(Map.of("PYTHONPATH", repositoryPath.resolve(ENV_PATH).toString()))
-            .build()
-            .run();
+        try
+        {
+            Command.builder()
+                .commandTimeout(commandTimeoutMinutes)
+                .repositoryPath(repositoryPath)
+                .commandline(
+                    List.of(BIN_BASH, BASH_C_OPTION,
+                        PYTHON_VIRTUAL_ENV_ACTIVATE + AND +
+                        PIP_INSTALL_POETRY + AND +
+                        POETRY_EXPORT + AND +
+                        PIP_INSTALL_CYCLONE_DX_BOM + AND +
+                        "cd env/ " + AND + CYCLONE_DX_GENERATE_BOM + AND +
+                        "cd .. " + AND +
+                        PYTHON_VIRTUAL_ENV_DEACTIVATE
+                    )
+                )
+                .build()
+                .run();
+        }
+        catch (IllegalStateException | IOException | InterruptedException e)
+        {
+            log.error("Failing generating Poetry freeze: {}", e.getMessage());
+        }
     }
 }

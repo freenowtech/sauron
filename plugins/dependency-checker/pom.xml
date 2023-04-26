@@ -29,6 +29,8 @@
         <plugin.class>com.freenow.sauron.plugins.SauronPlugin</plugin.class>
         <plugin.provider>freenow</plugin.provider>
         <plugin.dependencies />
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>

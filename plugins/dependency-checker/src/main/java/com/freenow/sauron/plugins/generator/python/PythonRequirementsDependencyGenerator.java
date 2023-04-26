@@ -4,13 +4,18 @@ import com.freenow.sauron.plugins.command.Command;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.freenow.sauron.plugins.command.Command.BASH_C_OPTION;
+import static com.freenow.sauron.plugins.command.Command.BIN_BASH;
+import static com.freenow.sauron.plugins.command.Command.AND;
 
 @Slf4j
 public class PythonRequirementsDependencyGenerator extends PythonDependencyGenerator
 {
-    private static final String PIP_INSTALL_COMMAND = "-m pip install -r requirements.txt --target env";
-    private static final String FREEZE_COMMAND = "-m pip freeze --path env";
+    private static final String PIP_INSTALL_COMMAND = "python -m pip install -r requirements.txt --target env";
+    private static final String FREEZE_COMMAND = "python -m pip freeze --path env > requirements.freeze";
 
 
     public PythonRequirementsDependencyGenerator(PluginsConfigurationProperties properties)
@@ -24,35 +29,26 @@ public class PythonRequirementsDependencyGenerator extends PythonDependencyGener
     {
         try
         {
-            pipInstall(repositoryPath);
-            pipFreeze(repositoryPath);
+            Command.builder()
+                .commandTimeout(commandTimeoutMinutes)
+                .repositoryPath(repositoryPath)
+                .commandline(
+                    List.of(BIN_BASH, BASH_C_OPTION,
+                        PYTHON_VIRTUAL_ENV_ACTIVATE + AND +
+                        PIP_INSTALL_COMMAND + AND +
+                        FREEZE_COMMAND + AND +
+                        PIP_INSTALL_CYCLONE_DX_BOM + AND +
+                        "cd env/ && " + CYCLONE_DX_GENERATE_BOM + AND +
+                        "cd .. " + AND +
+                        PYTHON_VIRTUAL_ENV_DEACTIVATE
+                    )
+                )
+                .build()
+                .run();
         }
         catch (IllegalStateException | IOException | InterruptedException e)
         {
             log.error("Failing generating requirements freeze: {}", e.getMessage());
         }
-    }
-
-
-    private void pipInstall(Path repositoryPath) throws IOException, InterruptedException
-    {
-        Command.builder()
-            .commandTimeout(commandTimeoutMinutes)
-            .repositoryPath(repositoryPath)
-            .commandline(pythonCommand(PIP_INSTALL_COMMAND))
-            .build()
-            .run();
-    }
-
-
-    private void pipFreeze(Path repositoryPath) throws IOException, InterruptedException
-    {
-        Command.builder()
-            .commandTimeout(commandTimeoutMinutes)
-            .repositoryPath(repositoryPath)
-            .commandline(pythonCommand(FREEZE_COMMAND))
-            .outputFile(repositoryPath.resolve(REQUIREMENTS_FREEZE_FILE).toFile())
-            .build()
-            .run();
     }
 }

@@ -18,6 +18,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class Command
 {
 
+    public static final String BIN_BASH = "/bin/bash";
+    public static final String BASH_C_OPTION = "-c";
+    public static final String AND = " && ";
     private final Map<String, String> environment;
     private final File outputFile;
     private final List<String> commandline;
@@ -27,8 +30,8 @@ public class Command
 
     public void run() throws IOException, InterruptedException, NonZeroExitCodeException
     {
-        ProcessBuilder builder = new ProcessBuilder()
-            .command(commandline.get(0), commandline.get(1))
+        ProcessBuilder builder = new ProcessBuilder(BIN_BASH, BASH_C_OPTION)
+            .command(commandline)
             .directory(repositoryPath.toFile());
 
         if (environment != null && !environment.isEmpty())
