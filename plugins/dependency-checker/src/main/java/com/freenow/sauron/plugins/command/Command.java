@@ -30,7 +30,7 @@ public class Command
 
     public void run() throws IOException, InterruptedException, NonZeroExitCodeException
     {
-        ProcessBuilder builder = new ProcessBuilder(BIN_BASH, BASH_C_OPTION)
+        ProcessBuilder builder = new ProcessBuilder()
             .command(commandline)
             .directory(repositoryPath.toFile());
 

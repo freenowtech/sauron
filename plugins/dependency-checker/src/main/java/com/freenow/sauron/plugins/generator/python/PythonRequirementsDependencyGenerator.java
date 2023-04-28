@@ -38,8 +38,8 @@ public class PythonRequirementsDependencyGenerator extends PythonDependencyGener
                         PIP_INSTALL_COMMAND + AND +
                         FREEZE_COMMAND + AND +
                         PIP_INSTALL_CYCLONE_DX_BOM + AND +
-                        "cd env/ && " + CYCLONE_DX_GENERATE_BOM + AND +
-                        "cd .. " + AND +
+                        GO_TO_ENV + AND + CYCLONE_DX_GENERATE_BOM + AND +
+                        RETURN + AND +
                         PYTHON_VIRTUAL_ENV_DEACTIVATE
                     )
                 )
