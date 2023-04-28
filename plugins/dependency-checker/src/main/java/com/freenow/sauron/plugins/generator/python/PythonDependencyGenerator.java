@@ -19,6 +19,9 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
     protected static final String PYTHON_VIRTUAL_ENV_CREATE = "-m venv .";
     protected static final String PYTHON_VIRTUAL_ENV_ACTIVATE = "source bin/activate";
     protected static final String PYTHON_VIRTUAL_ENV_DEACTIVATE = "deactivate";
+    protected static final String GO_TO_ENV = "cd env/ ";
+    protected static final String RETURN = "cd .. ";
+
     protected String python = "python";
 
 
@@ -76,6 +79,6 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
 
     protected List<String> pythonCommand(String parameters)
     {
-        return List.of(python, parameters);
+        return List.of(python.concat(" ").concat(parameters).split("\\s+"));
     }
 }

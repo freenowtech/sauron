@@ -35,12 +35,12 @@ public class PythonPoetryDependencyGenerator extends PythonDependencyGenerator
                 .commandline(
                     List.of(BIN_BASH, BASH_C_OPTION,
                         PYTHON_VIRTUAL_ENV_ACTIVATE + AND +
-                        PIP_INSTALL_POETRY + AND +
-                        POETRY_EXPORT + AND +
-                        PIP_INSTALL_CYCLONE_DX_BOM + AND +
-                        "cd env/ " + AND + CYCLONE_DX_GENERATE_BOM + AND +
-                        "cd .. " + AND +
-                        PYTHON_VIRTUAL_ENV_DEACTIVATE
+                            PIP_INSTALL_POETRY + AND +
+                            POETRY_EXPORT + AND +
+                            PIP_INSTALL_CYCLONE_DX_BOM + AND +
+                            GO_TO_ENV + AND + CYCLONE_DX_GENERATE_BOM + AND +
+                            RETURN + AND +
+                            PYTHON_VIRTUAL_ENV_DEACTIVATE
                     )
                 )
                 .build()
