@@ -5,7 +5,6 @@ import com.freenow.sauron.plugins.command.NonZeroExitCodeException;
 import com.freenow.sauron.plugins.generator.DependencyGenerator;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -14,20 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class PythonDependencyGenerator extends DependencyGenerator
 {
-    protected static final String ENV_PATH = "env";
     protected static final String REQUIREMENTS_FREEZE_FILE = "requirements.freeze";
-
-    private static final String PIP_INSTALL_CYCLONE_DX_COMMAND = "-m pip install --target env cyclonedx-bom --ignore-installed packaging";
-    private static final String CYCLONE_DX_PY_COMMAND = "-m env.cyclonedx_py -r -i requirements.freeze -o bom.xml";
-
-    public static class RequirementsFreezeMissingException extends IllegalStateException
-    {
-        private RequirementsFreezeMissingException()
-        {
-            super("Project is missing requirements.freeze");
-        }
-    }
-
+    protected static final String PIP_INSTALL_CYCLONE_DX_BOM = "python -m pip install --target env cyclonedx-bom";
+    protected static final String CYCLONE_DX_GENERATE_BOM = "python -m cyclonedx_py -r -i ../" + REQUIREMENTS_FREEZE_FILE + " -o ../bom.xml";
+    protected static final String PYTHON_VIRTUAL_ENV_CREATE = "-m venv .";
+    protected static final String PYTHON_VIRTUAL_ENV_ACTIVATE = "source bin/activate";
+    protected static final String PYTHON_VIRTUAL_ENV_DEACTIVATE = "deactivate";
     protected String python = "python";
 
 
@@ -55,9 +46,10 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
     {
         try
         {
+            createPythonVirtualEnv(repositoryPath);
             generateRequirementsFreeze(repositoryPath);
-            requireRequirementsFreeze(repositoryPath);
-            return buildCycloneDxBom(repositoryPath);
+
+            return repositoryPath.resolve("bom.xml");
         }
         catch (Exception e)
         {
@@ -68,42 +60,22 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
     }
 
 
-    protected abstract void generateRequirementsFreeze(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException;
-
-
-    private Path buildCycloneDxBom(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException
+    private void createPythonVirtualEnv(Path repositoryPath) throws IOException, InterruptedException
     {
         Command.builder()
             .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
-            .commandline(pythonCommand(PIP_INSTALL_CYCLONE_DX_COMMAND))
-            .environment(Map.of("PYTHONPATH", repositoryPath.resolve(ENV_PATH).toString()))
+            .commandline(pythonCommand(PYTHON_VIRTUAL_ENV_CREATE))
             .build()
             .run();
-
-        Command.builder()
-            .commandTimeout(commandTimeoutMinutes)
-            .repositoryPath(repositoryPath)
-            .commandline(pythonCommand(CYCLONE_DX_PY_COMMAND))
-            .environment(Map.of("PYTHONPATH", repositoryPath.resolve(ENV_PATH).toString()))
-            .build()
-            .run();
-
-        return repositoryPath.resolve("bom.xml");
     }
+
+
+    protected abstract void generateRequirementsFreeze(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException;
 
 
     protected List<String> pythonCommand(String parameters)
     {
         return List.of(python, parameters);
-    }
-
-
-    private void requireRequirementsFreeze(Path repositoryPath) throws RequirementsFreezeMissingException
-    {
-        if (Files.notExists(repositoryPath.resolve(REQUIREMENTS_FREEZE_FILE)))
-        {
-            throw new RequirementsFreezeMissingException();
-        }
     }
 }
