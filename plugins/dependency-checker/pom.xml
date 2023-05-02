@@ -6,7 +6,7 @@
     <groupId>com.free-now.sauron.plugins</groupId>
     <name>Sauron Dependency Checker</name>
     <description>Sauron Dependency Checker Plugin</description>
-    <version>0.0.55-SNAPSHOT</version>
+    <version>0.0.55</version>
 
     <url>https://github.com/freenowtech/sauron</url>
 
@@ -40,7 +40,7 @@
     </properties>
 
     <scm>
-        <tag>HEAD</tag>
+        <tag>dependency-checker-0.0.55</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
