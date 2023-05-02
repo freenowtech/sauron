@@ -11,10 +11,14 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
+import static com.freenow.sauron.plugins.command.Command.BASH_C_OPTION;
+import static com.freenow.sauron.plugins.command.Command.BIN_BASH;
+
 @Slf4j
 public class NodeJsDependencyGenerator extends DependencyGenerator
 {
-    public static final String CYCLONEDX_NPM_OUTPUT_FILE_BOM_XML = "@cyclonedx/cyclonedx-npm --output-format XML --output-file bom.xml";
+    public static final String CYCLONEDX_NPM_OUTPUT_FILE_BOM_XML = " npx @cyclonedx/cyclonedx-npm --omit dev --output-format XML --output-file bom.xml";
+    private static final String NPM_CI_OMIT_DEV = " ci --omit=dev";
 
     public static class PackageLockJsonMissingException extends IllegalStateException
     {
@@ -85,7 +89,9 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
         Command.builder()
             .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
-            .commandline(List.of(npmBin, "ci --production"))
+            .commandline(
+                List.of(npmBin.concat(" ").concat(NPM_CI_OMIT_DEV).split("\\s+"))
+            )
             .build()
             .run();
     }
@@ -96,7 +102,7 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
         Command.builder()
             .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
-            .commandline(List.of(npxBin, CYCLONEDX_NPM_OUTPUT_FILE_BOM_XML))
+            .commandline(List.of(BIN_BASH, BASH_C_OPTION, CYCLONEDX_NPM_OUTPUT_FILE_BOM_XML))
             .build()
             .run();
         return repositoryPath.resolve("bom.xml");
