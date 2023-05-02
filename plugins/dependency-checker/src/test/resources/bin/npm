@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker run --rm -v $PWD:/wrk -w /wrk node:14 npm $1
+docker run --rm -v $PWD:/wrk -w /wrk node:18.16.0 npm $1
