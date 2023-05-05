@@ -121,6 +121,12 @@
             <groupId>org.cyclonedx</groupId>
             <artifactId>cyclonedx-core-java</artifactId>
             <version>${cyclonedx-core-java.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
