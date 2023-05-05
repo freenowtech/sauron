@@ -34,9 +34,10 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <jackson.version>2.11.2</jackson.version>
+        <jackson.version>2.15.0</jackson.version>
         <elasticsearch.version>7.10.2</elasticsearch.version>
         <scm.url>scm:git:git@github.com:freenowtech/sauron.git</scm.url>
+        <cyclonedx-core-java.version>7.3.2</cyclonedx-core-java.version>
     </properties>
 
     <scm>
@@ -112,9 +113,14 @@
         </dependency>
 
         <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jaxb-annotations</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.cyclonedx</groupId>
             <artifactId>cyclonedx-core-java</artifactId>
-            <version>1.1.2</version>
+            <version>${cyclonedx-core-java.version}</version>
         </dependency>
 
         <dependency>
