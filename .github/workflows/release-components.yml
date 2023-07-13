@@ -91,7 +91,7 @@ jobs:
 
       - name: Publish to Registry
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
-        uses: elgohr/Publish-Docker-Github-Action@3.02
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: freenowtech/sauron/sauron-service
           username: ${{ secrets.FREE_NOW_GITHUB_USER }}
@@ -100,3 +100,4 @@ jobs:
           workdir: sauron-service/
           registry: ghcr.io
           tags: "latest,${{ steps.extractversion.outputs.version }}"
+          platforms: linux/amd64,linux/arm64
