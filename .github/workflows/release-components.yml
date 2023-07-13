@@ -89,6 +89,15 @@ jobs:
         id: extractversion
         run: echo "::set-output name=version::$(cut -c16- <<< "${{ steps.previoustag.outputs.tag }}")"
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          config: .github/buildkitd.toml
+
       - name: Publish to Registry
         if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
         uses: elgohr/Publish-Docker-Github-Action@v5
