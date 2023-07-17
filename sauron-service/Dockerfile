@@ -72,9 +72,12 @@ RUN mkdir -p /sauron/plugins
 
 VOLUME /sauron/plugins
 
-ENV TINI_VERSION v0.18.0
+ENV TINI_VERSION v0.19.0
 
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+# Defined by Docker, see https://docs.docker.com/desktop/extensions-sdk/extensions/multi-arch/#adding-multi-arch-binaries
+ARG TARGETARCH
+
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /usr/bin/tini
 
 RUN chmod a+x /usr/bin/tini
 
