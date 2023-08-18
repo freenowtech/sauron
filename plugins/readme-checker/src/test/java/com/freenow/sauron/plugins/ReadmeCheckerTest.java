@@ -93,7 +93,7 @@ public class ReadmeCheckerTest
     @Test
     public void testReadmeCheckerCaseInsensitiveMixedCase() throws IOException
     {
-        DataSet dataSet = apply(10, "1B", "ReadmE.md", false);
+        DataSet dataSet = apply(10, "1B", "ReadmE.mD", false);
         checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, false);
     }
 

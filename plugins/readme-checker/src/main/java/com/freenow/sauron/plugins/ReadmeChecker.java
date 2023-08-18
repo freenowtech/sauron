@@ -69,7 +69,7 @@ public class ReadmeChecker implements SauronExtension
 
     private Optional<String> getReadmeFilename(Path repositoryPath, Boolean caseSensitive)
     {
-        Stream<String> markdownFiles = Arrays.stream(repositoryPath.toFile().list((dir, name) -> name.contains(".md")));
+        Stream<String> markdownFiles = Arrays.stream(repositoryPath.toFile().list((dir, name) -> name.toLowerCase().contains(".md")));
         if (caseSensitive)
         {
             return markdownFiles.filter(s -> s.equals("README.md")).findFirst();
