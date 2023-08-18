@@ -27,7 +27,6 @@ public class ReadmeChecker implements SauronExtension
     private static final String CONTENT_CHECK_2 = "The team/tribe/organizational unit responsible for this service and at least one fast and good way how to contact them, e.g. slack channel.";
 
     private static final String CONFIG_DEFAULT_MIN_SIZE = "1B";
-    private static final boolean CONFIG_DEFAULT_CASE_SENSITIVE = false;
 
 
     @Override
@@ -38,11 +37,9 @@ public class ReadmeChecker implements SauronExtension
             try
             {
                 String minLength = String.valueOf(properties.getPluginConfigurationProperty("readme-checker", "minLength").orElse(CONFIG_DEFAULT_MIN_SIZE));
-                Boolean caseSensitive = Boolean.valueOf(String.valueOf(properties.getPluginConfigurationProperty("readme-checker", "caseSensitive")
-                    .orElse(CONFIG_DEFAULT_CASE_SENSITIVE)));
                 long size = DataSize.parse(minLength).toBytes();
 
-                Optional<String> readmeFilename = getReadmeFilename(Paths.get(repositoryPath), caseSensitive);
+                Optional<String> readmeFilename = getReadmeFilename(Paths.get(repositoryPath));
                 boolean missingOrEmptyReadme = readmeFilename.isEmpty();
                 if (!missingOrEmptyReadme)
                 {
@@ -67,17 +64,10 @@ public class ReadmeChecker implements SauronExtension
     }
 
 
-    private Optional<String> getReadmeFilename(Path repositoryPath, Boolean caseSensitive)
+    private Optional<String> getReadmeFilename(Path repositoryPath)
     {
-        Stream<String> markdownFiles = Arrays.stream(repositoryPath.toFile().list((dir, name) -> name.contains(".md")));
-        if (caseSensitive)
-        {
-            return markdownFiles.filter(s -> s.equals("README.md")).findFirst();
-        }
-        else
-        {
-            return markdownFiles.filter(s -> s.equalsIgnoreCase("readme.md")).findFirst();
-        }
+        return Arrays.stream(repositoryPath.toFile().list((dir, name) -> name.toLowerCase().contains(".md")))
+            .filter(s -> s.equalsIgnoreCase("readme.md")).findFirst();
     }
 
 

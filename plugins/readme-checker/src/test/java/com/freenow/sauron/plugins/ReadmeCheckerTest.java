@@ -85,7 +85,7 @@ public class ReadmeCheckerTest
     @Test
     public void testReadmeCheckerCaseInsensitive() throws IOException
     {
-        DataSet dataSet = apply(10, "1B", "readme.md", false);
+        DataSet dataSet = apply(10, "1B", "readme.md");
         checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, false);
     }
 
@@ -93,18 +93,9 @@ public class ReadmeCheckerTest
     @Test
     public void testReadmeCheckerCaseInsensitiveMixedCase() throws IOException
     {
-        DataSet dataSet = apply(10, "1B", "ReadmE.md", false);
+        DataSet dataSet = apply(10, "1B", "ReadmE.mD");
         checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, false);
     }
-
-
-    @Test
-    public void testReadmeCheckerCaseSensitivityEnabled() throws IOException
-    {
-        DataSet dataSet = apply(10, "1B", "readme.md", true);
-        checkKeyPresent(dataSet, MISSING_OR_EMPTY_README, true);
-    }
-
 
     @Test
     public void testReadmeCheckerReadmeNoConfig() throws IOException
@@ -128,15 +119,6 @@ public class ReadmeCheckerTest
         ReadmeChecker plugin = new ReadmeChecker();
         DataSet dataSet = createDataSet(readmeSize, readmeFileName);
         PluginsConfigurationProperties properties = createPluginConfigurationProperties(minLength);
-        return plugin.apply(properties, dataSet);
-    }
-
-
-    private DataSet apply(int readmeSize, String minLength, String readmeFileName, boolean caseSensitive) throws IOException
-    {
-        ReadmeChecker plugin = new ReadmeChecker();
-        DataSet dataSet = createDataSet(readmeSize, readmeFileName);
-        PluginsConfigurationProperties properties = createPluginConfigurationProperties(minLength, caseSensitive);
         return plugin.apply(properties, dataSet);
     }
 
@@ -170,8 +152,6 @@ public class ReadmeCheckerTest
         {
             readmeCheckerProperties.put("minLength", minLength);
         }
-        readmeCheckerProperties.put("caseSensitive", Boolean.toString(caseSensitive));
-
         properties.put("readme-checker", readmeCheckerProperties);
         return properties;
     }
