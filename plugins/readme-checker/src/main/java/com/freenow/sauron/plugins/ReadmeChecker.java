@@ -3,7 +3,6 @@ package com.freenow.sauron.plugins;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,9 +10,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.Extension;
 import org.springframework.util.unit.DataSize;
@@ -66,8 +63,20 @@ public class ReadmeChecker implements SauronExtension
 
     private Optional<String> getReadmeFilename(Path repositoryPath)
     {
-        return Arrays.stream(repositoryPath.toFile().list((dir, name) -> name.toLowerCase().contains(".md")))
-            .filter(s -> s.equalsIgnoreCase("readme.md")).findFirst();
+        try
+        {
+            return Files.list(repositoryPath)
+                .map(Path::getFileName)
+                .map(Path::toString)
+                .filter(name ->
+                    name.equalsIgnoreCase("readme.md") || name.equalsIgnoreCase("readme.rst")
+                )
+                .findFirst();
+        }
+        catch (IOException e)
+        {
+            return Optional.empty();
+        }
     }
 
 
