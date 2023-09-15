@@ -39,14 +39,14 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
 RUN apt-get update && apt-get install -y nodejs --no-install-recommends
 
-# Installing Python3.9
-RUN wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
+# Installing Python3.11
+RUN wget https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz
 
-RUN tar xzf Python-3.9.6.tgz && cd Python-3.9.6 && ./configure --enable-optimizations && make altinstall
+RUN tar xzf Python-3.11.4.tgz && cd Python-3.11.4 && ./configure --enable-optimizations && make altinstall
 
-RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.9 10
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 10
 
-RUN cd .. && rm -rf Python-3.9.6*
+RUN cd .. && rm -rf Python-3.11.4*
 
 RUN rm -rf /var/lib/apt/lists/*
 
