@@ -11,6 +11,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.pf4j.PluginManager;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
@@ -116,6 +117,9 @@ public class PipelineService
             try
             {
                 log.debug(String.format("Applying pluginId: %s. Processing service %s - %s", plugin, request.getServiceName(), request.getCommitId()));
+                MDC.put("sauron.pluginId", plugin);
+                MDC.put("sauron.serviceName", request.getServiceName());
+                MDC.put("sauron.commitId", request.getCommitId());
                 pluginExtension.apply(pluginsProperties, dataSet);
             }
             catch (final Exception ex)
