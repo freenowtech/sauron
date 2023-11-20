@@ -49,14 +49,12 @@ public class AutomaticPluginUpdater
 
             event.setSuccess(true);
 
+            applicationEventPublisher.publishEvent(event);
         }
         catch (Exception e)
         {
             log.error("Cannot load plugins '{}'", e.getMessage(), e);
-            event.setSuccess(false);
         }
-
-        applicationEventPublisher.publishEvent(event);
     }
 
 

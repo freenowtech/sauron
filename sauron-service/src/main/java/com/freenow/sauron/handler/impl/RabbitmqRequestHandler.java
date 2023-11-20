@@ -22,7 +22,7 @@ public class RabbitmqRequestHandler implements RequestHandler
 
     private static final String LISTENER_ID = "sauron-consumer";
 
-    private static final String AUTOSTARTUP = "false";
+    private static final String FALSE = "false";
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -74,7 +74,7 @@ public class RabbitmqRequestHandler implements RequestHandler
         id = LISTENER_ID,
         containerFactory = ASYNC_CONTAINER_FACTORY,
         queues = SAURON_QUEUE_NAME,
-        autoStartup = AUTOSTARTUP
+        autoStartup = FALSE
     )
     public void consume(BuildRequest request)
     {
