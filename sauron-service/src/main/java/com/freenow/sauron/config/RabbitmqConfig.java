@@ -24,18 +24,23 @@ public class RabbitmqConfig
 
 
     @Bean
-    public SimpleRabbitListenerContainerFactory eventBusPrefetchCount(@Qualifier("eventBus") SimpleRabbitListenerContainerFactory eventBus)
+    public SimpleRabbitListenerContainerFactory eventBusPrefetchCount(
+        @Qualifier("eventBus") SimpleRabbitListenerContainerFactory eventBus,
+        final Jackson2JsonMessageConverter converter)
     {
         eventBus.setPrefetchCount(1);
+        eventBus.setMessageConverter(converter);
         return eventBus;
     }
 
 
     @Bean
-    public RabbitTemplate rabbitTemplate(final ConnectionFactory multiRabbitConnectionFactory)
+    public RabbitTemplate rabbitTemplate(
+        final ConnectionFactory multiRabbitConnectionFactory,
+        final Jackson2JsonMessageConverter converter)
     {
         final var rabbitTemplate = new RabbitTemplate(multiRabbitConnectionFactory);
-        rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
+        rabbitTemplate.setMessageConverter(converter);
         return rabbitTemplate;
     }
 
