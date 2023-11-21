@@ -11,7 +11,7 @@
 
     <artifactId>sauron-service</artifactId>
     <groupId>com.free-now.sauron</groupId>
-    <version>1.0.45-SNAPSHOT</version>
+    <version>1.0.45</version>
     <name>Sauron Service</name>
     <description>Sauron, The all seeying eye. Dependency and version tracking.</description>
 
@@ -50,7 +50,7 @@
     </properties>
 
     <scm>
-        <tag>HEAD</tag>
+        <tag>sauron-service-1.0.45</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
