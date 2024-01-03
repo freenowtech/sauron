@@ -146,6 +146,14 @@ public class DependencyCheckerTest
         checkKeyPresent(dataSet, "projectType", CLOJURE.toString());
     }
 
+    @Test
+    public void testDependencyCheckerGoProject() throws IOException, URISyntaxException
+    {
+        DataSet dataSet = createDataSet("go.mod", "go.mod");
+        dataSet = plugin.apply(new PluginsConfigurationProperties(), dataSet);
+        checkKeyPresent(dataSet, "projectType", GO.toString());
+    }
+
 
     private void checkKeyPresent(DataSet dataSet, String key, Object expected)
     {
