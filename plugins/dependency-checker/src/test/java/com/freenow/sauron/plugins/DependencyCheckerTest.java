@@ -146,6 +146,7 @@ public class DependencyCheckerTest
         checkKeyPresent(dataSet, "projectType", CLOJURE.toString());
     }
 
+
     @Test
     public void testDependencyCheckerGoProject() throws IOException, URISyntaxException
     {
