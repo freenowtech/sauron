@@ -13,6 +13,7 @@ public enum ProjectType
     PYTHON_POETRY,
     SBT,
     CLOJURE,
+    GO,
     UNKNOWN;
 
 
@@ -49,6 +50,10 @@ public enum ProjectType
         if (Files.exists(repositoryPath.resolve("project.clj")))
         {
             return CLOJURE;
+        }
+        if (Files.exists(repositoryPath.resolve("go.mod")))
+        {
+            return GO;
         }
 
         return UNKNOWN;
