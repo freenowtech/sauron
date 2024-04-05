@@ -44,5 +44,6 @@
         <module>plugins/bcrypt-passwordencoder-checker</module>
         <module>plugins/jaegerapi-report</module>
         <module>plugins/cleanup</module>
+        <module>plugins/webhook</module>
     </modules>
 </project>
