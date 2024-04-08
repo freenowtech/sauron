@@ -14,8 +14,7 @@ import static com.freenow.sauron.plugins.command.Command.AND;
 @Slf4j
 public class PythonPoetryDependencyGenerator extends PythonDependencyGenerator
 {
-    private static final String PIP_INSTALL_POETRY = "python -m pip install poetry==1.1.15 --target env";
-    private static final String POETRY_EXPORT = "python -m poetry export --output requirements.freeze --without-hashes";
+    private static final String POETRY_EXPORT = "poetry export --output requirements.freeze --without-hashes";
 
 
     public PythonPoetryDependencyGenerator(PluginsConfigurationProperties properties)
@@ -35,7 +34,6 @@ public class PythonPoetryDependencyGenerator extends PythonDependencyGenerator
                 .commandline(
                     List.of(BIN_BASH, BASH_C_OPTION,
                         PYTHON_VIRTUAL_ENV_ACTIVATE + AND +
-                        PIP_INSTALL_POETRY + AND +
                         POETRY_EXPORT + AND +
                         PIP_INSTALL_CYCLONE_DX_BOM + AND +
                         GO_TO_ENV + AND + CYCLONE_DX_GENERATE_BOM + AND +
