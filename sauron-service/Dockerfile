@@ -59,6 +59,9 @@ RUN python -m pip install poetry==1.1.7
 # Upgrade Pip
 RUN python -m pip install --upgrade pip
 
+# Enabling Poetry to be used without need of full path 
+RUN ln -s ~/.pyenv/versions/"$PYTHON_VERSION"/bin/poetry /usr/local/bin/poetry
+
 RUN mkdir /root/.m2
 
 VOLUME /root/.m2
