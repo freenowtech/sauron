@@ -38,12 +38,12 @@ in Elasticsearch. See this [issue](https://github.com/elastic/kibana/issues/3540
 
 ### Running locally
 
-Tu run this plugin locally the below dependencies are required:
+This plugin requires the below dependencies to be executed locally:
 * Python
 ```bash
 brew install python@3.11.4 
 ``` 
 * Poetry
 ```bash
-brew python -m pip install poetry==1.1.7
+python -m pip install poetry==1.1.7
 ```
