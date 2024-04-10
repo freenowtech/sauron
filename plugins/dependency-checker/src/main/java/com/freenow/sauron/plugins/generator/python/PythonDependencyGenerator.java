@@ -15,7 +15,7 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
 {
     protected static final String REQUIREMENTS_FREEZE_FILE = "requirements.freeze";
     protected static final String PIP_INSTALL_CYCLONE_DX_BOM = "python -m pip install --target env cyclonedx-bom";
-    protected static final String CYCLONE_DX_GENERATE_BOM = "python -m cyclonedx_py -r -i ../" + REQUIREMENTS_FREEZE_FILE + " -o ../bom.xml";
+    protected static final String CYCLONE_DX_GENERATE_BOM = "python -m cyclonedx_py requirements ../" + REQUIREMENTS_FREEZE_FILE + " --of XML -o ../bom.xml";
     protected static final String PYTHON_VIRTUAL_ENV_CREATE = "-m venv .";
     protected static final String PYTHON_VIRTUAL_ENV_ACTIVATE = "source bin/activate";
     protected static final String PYTHON_VIRTUAL_ENV_DEACTIVATE = "deactivate";

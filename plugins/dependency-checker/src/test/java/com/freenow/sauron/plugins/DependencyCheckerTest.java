@@ -234,13 +234,6 @@ public class DependencyCheckerTest
 
     private PluginsConfigurationProperties createPythonPluginConfigurationProperties()
     {
-        ClassLoader classLoader = getClass().getClassLoader();
-        PluginsConfigurationProperties properties = new PluginsConfigurationProperties();
-        properties.put("dependency-checker", Map.of(
-            "python", Map.of(
-                "path", Objects.requireNonNull(classLoader.getResource("bin/python")).getPath()
-            )
-        ));
-        return properties;
+        return new PluginsConfigurationProperties();
     }
 }

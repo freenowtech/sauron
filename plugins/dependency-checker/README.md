@@ -34,3 +34,16 @@ performance improvement.
 
 *Note*: Dependencies with `.` in artifact id, will have this character replaced by `_` to avoid mapping conflicts
 in Elasticsearch. See this [issue](https://github.com/elastic/kibana/issues/3540#issuecomment-219808228) for more details.
+
+
+### Running locally
+
+This plugin requires the below dependencies to be executed locally:
+* Python
+```bash
+brew install python@3.11.4 
+``` 
+* Poetry
+```bash
+python -m pip install poetry==1.1.7
+```

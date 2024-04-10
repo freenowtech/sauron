@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-docker run --rm -v $PWD:/wrk -e PYTHONPATH=/wrk/env -w /wrk python:3.11-bookworm python $@
