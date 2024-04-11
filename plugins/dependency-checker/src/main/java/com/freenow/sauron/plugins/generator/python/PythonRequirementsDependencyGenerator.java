@@ -14,8 +14,7 @@ import static com.freenow.sauron.plugins.command.Command.AND;
 @Slf4j
 public class PythonRequirementsDependencyGenerator extends PythonDependencyGenerator
 {
-    private static final String PIP_INSTALL_COMMAND = "python -m pip install -r requirements.txt --target env";
-    private static final String FREEZE_COMMAND = "python -m pip freeze --path env > requirements.freeze";
+    private static final String CYCLONE_DX_GENERATE_BOM = "cyclonedx-py requirements requirements.txt --of XML -o bom.xml";
 
 
     public PythonRequirementsDependencyGenerator(PluginsConfigurationProperties properties)
@@ -33,13 +32,11 @@ public class PythonRequirementsDependencyGenerator extends PythonDependencyGener
                 .commandTimeout(commandTimeoutMinutes)
                 .repositoryPath(repositoryPath)
                 .commandline(
-                    List.of(BIN_BASH, BASH_C_OPTION,
+                    List.of(
+                        BIN_BASH, BASH_C_OPTION,
+                        PYTHON_VIRTUAL_ENV_CREATE + AND +
                         PYTHON_VIRTUAL_ENV_ACTIVATE + AND +
-                        PIP_INSTALL_COMMAND + AND +
-                        FREEZE_COMMAND + AND +
-                        PIP_INSTALL_CYCLONE_DX_BOM + AND +
-                        GO_TO_ENV + AND + CYCLONE_DX_GENERATE_BOM + AND +
-                        RETURN + AND +
+                        CYCLONE_DX_GENERATE_BOM + AND +
                         PYTHON_VIRTUAL_ENV_DEACTIVATE
                     )
                 )
