@@ -98,7 +98,10 @@ public class WebhookTest
         {{
             put("webhook", new HashMap<>()
             {{
-                put("endpoints", List.of(endpoint));
+                put("endpoints", new HashMap<>()
+                {{
+                    put("unittest", endpoint);
+                }});
             }});
         }};
     }
