@@ -58,39 +58,39 @@ public class Webhook implements SauronExtension
      */
     @Override
     public DataSet apply(PluginsConfigurationProperties properties, DataSet input) {
-        properties.getPluginConfigurationProperty(PLUGIN_ID, PROPERTY_ENDPOINTS).ifPresent(endpoints -> {
-            for (Map<String, Object> endpoint : (List<Map<String, Object>>) endpoints)
-            {
-                String url = (String) endpoint.getOrDefault(PROPERTY_URL, "");
-                if (Objects.equals(url, ""))
-                {
-                    logger.error("URL of webhook endpoint not set");
-                    continue;
-                }
-
-                String methodRaw = (String) endpoint.getOrDefault(PROPERTY_METHOD, "POST");
-                HttpMethod method = HttpMethod.resolve(methodRaw);
-                if (method == null)
-                {
-                    logger.error("HTTP method {} of webhook endpoint is invalid", methodRaw);
-                    continue;
-                }
-
-                HttpEntity<DataSet> payload = null;
-                Boolean includeDataSet = (Boolean) endpoint.getOrDefault(PROPERTY_INCLUDE_DATASET, false);
-                if (includeDataSet)
-                {
-                    payload = new HttpEntity<>(input);
-                }
-
-                ResponseEntity<Object> response = restTemplate.exchange(url, method, payload, Object.class);
-                if (!response.getStatusCode().is2xxSuccessful())
-                {
-                    logger.error("Sending webhook to {} failed with HTTP status code {}", url, response.getStatusCode());
-                }
-            }
+        properties.getPluginConfigurationProperty(PLUGIN_ID, PROPERTY_ENDPOINTS).ifPresent(endpointProperty -> {
+            Map<String, Object> endpoints = (Map<String, Object>) endpointProperty;
+            endpoints.forEach((name, data) -> {
+                Map<String, Object> config = (Map<String, Object>) data;
+                String url = (String) config.getOrDefault(PROPERTY_URL, "");
+                String methodRaw = (String) config.getOrDefault(PROPERTY_METHOD, "POST");
+                Boolean includeDataSet = (Boolean) config.getOrDefault(PROPERTY_INCLUDE_DATASET, false);
+                send(name, url, methodRaw, includeDataSet, input);
+            });
         });
 
         return input;
+    }
+
+    private void send(String name, String url, String methodRaw, Boolean includeDataSet, DataSet dataSet)
+    {
+        HttpMethod method = HttpMethod.resolve(methodRaw);
+        if (method == null)
+        {
+            logger.error("HTTP method {} of webhook endpoint {} is invalid", name, methodRaw);
+            return;
+        }
+
+        HttpEntity<DataSet> payload = null;
+        if (includeDataSet)
+        {
+            payload = new HttpEntity<>(dataSet);
+        }
+
+        ResponseEntity<Object> response = restTemplate.exchange(url, method, payload, Object.class);
+        if (!response.getStatusCode().is2xxSuccessful())
+        {
+            logger.error("Sending webhook {} to {} failed with HTTP status code {}", name, url, response.getStatusCode());
+        }
     }
 }
