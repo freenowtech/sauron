@@ -43,7 +43,19 @@ This plugin requires the below dependencies to be executed locally:
 ```bash
 brew install python@3.11.4 
 ``` 
-* Poetry
+* pipx - Install and Run Python Applications in Isolated Environments
 ```bash
-python -m pip install poetry==1.1.7
+brew install pipx
+pipx ensurepath
+```
+
+* Poetry and Poetry Export Plugin
+```bash
+pipx install poetry
+pipx inject poetry poetry-plugin-export
+```
+
+* CycloneDX Python SBOM Generation Tool
+```bash
+pipx install cyclonedx-bom
 ```

@@ -32,12 +32,12 @@ public class PythonPoetryDependencyGenerator extends PythonDependencyGenerator
                 .commandTimeout(commandTimeoutMinutes)
                 .repositoryPath(repositoryPath)
                 .commandline(
-                    List.of(BIN_BASH, BASH_C_OPTION,
+                    List.of(
+                        BIN_BASH, BASH_C_OPTION,
+                        PYTHON_VIRTUAL_ENV_CREATE + AND +
                         PYTHON_VIRTUAL_ENV_ACTIVATE + AND +
                         POETRY_EXPORT + AND +
-                        PIP_INSTALL_CYCLONE_DX_BOM + AND +
-                        GO_TO_ENV + AND + CYCLONE_DX_GENERATE_BOM + AND +
-                        RETURN + AND +
+                        CYCLONE_DX_GENERATE_BOM + AND +
                         PYTHON_VIRTUAL_ENV_DEACTIVATE
                     )
                 )

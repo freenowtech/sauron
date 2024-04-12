@@ -53,14 +53,27 @@ RUN curl -s https://pyenv.run | bash && eval "$(/root/.pyenv/bin/pyenv init -)" 
 
 RUN update-alternatives --install /usr/bin/python python /root/.pyenv/versions/"$PYTHON_VERSION"/bin/python 10
 
-# Installing Poetry
-RUN python -m pip install poetry==1.1.7
-
 # Upgrade Pip
 RUN python -m pip install --upgrade pip
 
-# Enabling Poetry to be used without need of full path 
-RUN ln -s ~/.pyenv/versions/"$PYTHON_VERSION"/bin/poetry /usr/local/bin/poetry
+# Installing pipx - https://pipx.pypa.io/stable/
+RUN python -m pip install --user pipx
+RUN python -m pipx ensurepath
+
+# Installing Poetry
+RUN python -m pipx install poetry==1.8.2
+
+# Installing Poetry Export Plugin
+RUN python -m pipx inject poetry poetry-plugin-export==1.7.1
+
+# Installing CycloneDX Python SBOM Generation Tool
+RUN python -m pipx install cyclonedx-bom==4.1.5
+
+# Enabling Poetry to be used without need of full path
+ RUN ln -s /root/.local/bin/poetry /usr/local/bin/poetry
+
+# Enabling CycloneDX to be used without need of full path
+ RUN ln -s /root/.local/bin/cyclonedx-py /usr/local/bin/cyclonedx-py
 
 RUN mkdir /root/.m2
 

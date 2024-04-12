@@ -27,12 +27,11 @@ jobs:
         with:
           python-version: "3.11.4"
       - run: python --version
-
-      - name: Set up Poetry
-        uses: Gr1N/setup-poetry@v8
-        with:
-          poetry-version: "1.1.7"
-      - run: poetry --version
+      - run: pipx --version
+      - run: pipx ensurepath
+      - run: pipx install poetry==1.8.2
+      - run: pipx inject poetry poetry-plugin-export==1.7.1
+      - run: pipx install cyclonedx-bom==4.1.5
 
       - name: Build with Maven and run the tests
         run: mvn --batch-mode --update-snapshots verify -Dgpg.skip=true

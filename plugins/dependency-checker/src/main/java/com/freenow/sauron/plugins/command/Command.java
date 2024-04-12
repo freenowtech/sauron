@@ -1,8 +1,10 @@
 package com.freenow.sauron.plugins.command;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
@@ -17,7 +19,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Builder
 public class Command
 {
-
     public static final String BIN_BASH = "/bin/bash";
     public static final String BASH_C_OPTION = "-c";
     public static final String AND = " && ";
@@ -44,6 +45,13 @@ public class Command
         if (!process.waitFor(commandTimeout, TimeUnit.MINUTES))
         {
             throw new NonZeroExitCodeException(commandline.toString(), new String(process.getErrorStream().readAllBytes()));
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null)
+        {
+            log.debug(line);
         }
 
         String processLogs = new String(process.getErrorStream().readAllBytes());
