@@ -81,7 +81,7 @@ jobs:
           ssh-private-key: ${{ secrets.FREE_NOW_GITHUB_PRIVATE_KEY }}
           maven-project-folder: ${{ matrix.path }}
           maven-repo-server-id: ossrh
-          maven-repo-server-username: ${{ secrets.FREE_NOW_GITHUB_USER }}
+          maven-repo-server-username: ${{ secrets.FREE_NOW_MAVEN_USERNAME }}
           maven-repo-server-password: ${{ secrets.FREE_NOW_MAVEN_ACCESS_TOKEN }}
           gpg-enabled: true
           gpg-key-id: ${{ secrets.FREE_NOW_GPG_KEY_ID }}
