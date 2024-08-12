@@ -18,5 +18,4 @@ This plugin does not need any mandatory key.
 ### Output
 
 This plugin does not add new keys to final
-[DataSet](https://github.com/freenowtech/sauron/blob/main/core/src/main/java/com/freenow/sauron/model/DataSet.java)
-object.
+[DataSet](https://github.com/freenowtech/sauron/blob/main/core/src/main/java/com/freenow/sauron/model/DataSet.java) object.
