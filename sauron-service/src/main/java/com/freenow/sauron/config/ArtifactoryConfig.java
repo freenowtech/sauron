@@ -22,8 +22,7 @@ public class ArtifactoryConfig
     {
         return ArtifactoryClientBuilder.create()
             .setUrl(artifactoryConfigurationProperties.getUrl())
-            .setUsername(artifactoryConfigurationProperties.getUsername())
-            .setPassword(artifactoryConfigurationProperties.getPassword())
+            .setAccessToken(artifactoryConfigurationProperties.getAccessToken())
             .build();
     }
 
