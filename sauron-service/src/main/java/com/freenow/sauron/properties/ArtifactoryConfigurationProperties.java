@@ -11,9 +11,7 @@ public class ArtifactoryConfigurationProperties
 
     private String repository;
 
-    private String username;
-
-    private String password;
+    private String accessToken;
 
     private String groupId;
 
