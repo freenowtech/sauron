@@ -394,8 +394,7 @@ inputs, outputs and possible configuration.
 #### Deploying your new Plugin
 
 Once the developing and testing process has been done, you can deploy a new version of your plugin, using the
-pre-defined plugin repository (Local or Artifactory). For more details please refer to
-[sauron-service.yml](https://github.com/freenowtech/sauron/blob/main/sauron-service/docker/config/sauron-service.yml).
+pre-defined plugin repository (Local or Artifactory). For more details please refer to [sauron-service.yml](https://github.com/freenowtech/sauron/blob/main/sauron-service/docker/config/sauron-service.yml).
 
 The plugin reloading process runs every **5 minutes**. To force a reloading use the `/api/v1/reload` method.
 
