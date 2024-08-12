@@ -403,6 +403,5 @@ Check [Swagger Documentation](http://localhost:8080/v2/api-docs) for more inform
 
 #### Using your new Plugin
 
-Once your plugin has been deployed and loaded by Sauron Service you can use it in a pipeline which will be then
- applied to new deployments.
+Once your plugin has been deployed and loaded by Sauron Service you can use it in a pipeline which will be then applied to new deployments.
 Refer to [Sauron Usage](#usage) for detailed information.
