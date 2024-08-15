@@ -5,5 +5,4 @@ import java.nio.file.Path
 
 interface Validator {
     fun check(repository: Path): Either<String, Unit>
-
 }
