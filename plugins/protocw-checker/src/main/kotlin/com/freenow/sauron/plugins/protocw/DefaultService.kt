@@ -23,5 +23,4 @@ class DefaultService : Service {
             return "malformed_version"
         }
     }
-
 }

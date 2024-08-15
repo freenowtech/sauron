@@ -9,13 +9,13 @@ class DefaultValidator : Validator {
     override fun check(repository: Path): Either<String, Unit> {
 
         return Either.fx {
-            !checkRepositorExists(repository)
+            !checkRepositoryExists(repository)
             !checkNeedsProtoc(repository)
             Unit
         }
     }
 
-    private fun checkRepositorExists(repository: Path): Either<String, Unit> {
+    private fun checkRepositoryExists(repository: Path): Either<String, Unit> {
         return Either.cond(Files.isDirectory(repository),
             { Unit },
             { "Repository is not a directory" }
@@ -36,5 +36,4 @@ class DefaultValidator : Validator {
             )
         }
     }
-
 }
