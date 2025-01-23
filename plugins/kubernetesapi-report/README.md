@@ -15,11 +15,13 @@ sauron.plugins:
   kubernetesapi-report:
     serviceLabel: "label/service.name" # The label that will used as a selector to find the resource by serviceName
     # When checks are needed in different clusters:
-    #  - set up a kube config file, see https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
-    #  - set up an association between the environment name and the name of a context in the kube config file
+    #  - Set up a kube config file, see https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/.
+    #  - Set up an association between the environment name and the name of a context in the kube config file.
+    #  - Optionally, use kubeConfigFile to set the location of the kube config file. Defaults to "$HOME/.kube/config" if not set.
     apiClientConfig:
       default: "default"
       environmentName: "kubeConfigContextName"
+    kubeConfigFile: "/home/user/.kube/config"
     selectors:
       pod:
         - label

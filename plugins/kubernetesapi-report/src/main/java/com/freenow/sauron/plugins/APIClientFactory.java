@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.freenow.sauron.plugins.KubernetesApiReport.API_CLIENT_CONFIG_PROPERTY;
+import static com.freenow.sauron.plugins.KubernetesApiReport.KUBE_CONFIG_FILE_PROPERTY;
 import static com.freenow.sauron.plugins.KubernetesApiReport.PLUGIN_ID;
 import static io.kubernetes.client.util.KubeConfig.ENV_HOME;
 import static io.kubernetes.client.util.KubeConfig.KUBECONFIG;
@@ -62,9 +63,17 @@ public class APIClientFactory
     {
         if (apiClients.isEmpty())
         {
+            String kubeConfigFile;
+            if (properties.getPluginConfigurationProperty(PLUGIN_ID, KUBE_CONFIG_FILE_PROPERTY).isPresent())
+            {
+                kubeConfigFile = (String) properties.getPluginConfigurationProperty(PLUGIN_ID, KUBE_CONFIG_FILE_PROPERTY).get();
+            } else {
+                kubeConfigFile = "";
+            }
+
             properties.getPluginConfigurationProperty(PLUGIN_ID, API_CLIENT_CONFIG_PROPERTY)
                 .ifPresent(config -> ((Map<String, String>) config).forEach((k, v) -> {
-                    apiClients.put(k, createClient(k, v));
+                    apiClients.put(k, createClient(k, v, kubeConfigFile));
                 }));
 
             if (apiClients.isEmpty())
@@ -83,7 +92,7 @@ public class APIClientFactory
         return Optional.ofNullable(apiClients.get(input.getStringAdditionalInformation(ENVIRONMENT).orElse(EMPTY))).orElse(apiClients.get(DEFAULT_CLIENT_CONFIG));
     }
 
-    private ApiClient createClient(String cluster, String value)
+    private ApiClient createClient(String cluster, String value, String kubeConfigFile)
     {
         try
         {
@@ -101,7 +110,7 @@ public class APIClientFactory
 
             log.debug("Creating Kubernetes client from config for cluster {}", cluster);
             // Create KubeConfig here because it allows setting the context.
-            File configFile = new File(new File(System.getenv(ENV_HOME), KUBEDIR), KUBECONFIG);
+            File configFile = getKubeConfig(kubeConfigFile);
             KubeConfig kubeConfig = KubeConfig.loadKubeConfig(new FileReader(configFile));
             kubeConfig.setContext(value);
             return ClientBuilder.kubeconfig(kubeConfig).build();
@@ -111,5 +120,15 @@ public class APIClientFactory
             log.error("API Client for {} not initialized. Error: {}", cluster, e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    private File getKubeConfig(String path)
+    {
+        if (path == null || path.isEmpty())
+        {
+            return new File(new File(System.getenv(ENV_HOME), KUBEDIR), KUBECONFIG);
+        }
+
+        return new File(path);
     }
 }
