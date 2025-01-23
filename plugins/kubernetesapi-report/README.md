@@ -15,11 +15,11 @@ sauron.plugins:
   kubernetesapi-report:
     serviceLabel: "label/service.name" # The label that will used as a selector to find the resource by serviceName
     # When checks are needed in different clusters:
-    #  - deploy https://hub.docker.com/r/bitnami/kubectl/ as service in the desired cluster
-    #  - set below the url for the cluster     
+    #  - set up a kube config file, see https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
+    #  - set up an association between the environment name and the name of a context in the kube config file
     apiClientConfig:
       default: "default"
-      clusterName: "cluster-url"
+      environmentName: "kubeConfigContextName"
     selectors:
       pod:
         - label
