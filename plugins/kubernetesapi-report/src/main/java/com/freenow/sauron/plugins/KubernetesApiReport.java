@@ -21,6 +21,7 @@ public class KubernetesApiReport implements SauronExtension
     static final String SELECTORS_PROPERTY = "selectors";
     static final String ENV_VARS_PROPERTY = "environmentVariablesCheck";
     static final String PROPERTIES_FILES_CHECK = "propertiesFilesCheck";
+    static final String KUBE_CONFIG_FILE_PROPERTY = "kubeConfigFile";
 
     private APIClientFactory apiClientFactory = new APIClientFactory();
     private KubernetesLabelAnnotationReader kubernetesLabelAnnotationReader = new KubernetesLabelAnnotationReader();
