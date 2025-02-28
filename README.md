@@ -193,7 +193,7 @@ Sauron has an embedded plugin system that allows anyone to insert its own busine
 information during the building/deploy process. It uses the [PF4J](https://github.com/pf4j/pf4j) which is a plugin
 framework written in Java, and provides a nice interface to implement an integration in your service.
 
-During the startup Sauron loads all available plugins, and updates them every **5 minutes** using the pre-defined
+During the startup Sauron loads all available plugins, and updates them according to the scheduler configuration using the pre-defined
 plugin repository (Local or Artifactory). For more details please refer to
 [sauron-service.yml](https://github.com/freenowtech/sauron/blob/main/sauron-service/docker/config/sauron-service.yml).
 

@@ -20,8 +20,6 @@ public class AutomaticPluginUpdater
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    private static final long PLUGIN_UPDATE_DELAY_MILLIS = 300000;
-
 
     @Autowired
     public AutomaticPluginUpdater(UpdateManager updateManager, PluginManager pluginManager, ApplicationEventPublisher applicationEventPublisher)
@@ -32,7 +30,7 @@ public class AutomaticPluginUpdater
     }
 
 
-    @Scheduled(fixedDelay = PLUGIN_UPDATE_DELAY_MILLIS)
+    @Scheduled(cron = "${plugin.update.scheduler.cron}")
     public void update()
     {
         PluginsLoadedEvent event = new PluginsLoadedEvent();
