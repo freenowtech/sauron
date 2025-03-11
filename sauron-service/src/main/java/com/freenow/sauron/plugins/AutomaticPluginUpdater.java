@@ -1,6 +1,5 @@
 package com.freenow.sauron.plugins;
 
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginRuntimeException;
@@ -21,6 +20,8 @@ public class AutomaticPluginUpdater
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    private static final long PLUGIN_UPDATE_DELAY_MILLIS = 300000;
+
 
     @Autowired
     public AutomaticPluginUpdater(UpdateManager updateManager, PluginManager pluginManager, ApplicationEventPublisher applicationEventPublisher)
@@ -30,15 +31,8 @@ public class AutomaticPluginUpdater
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    @PostConstruct
-    public void init()
-    {
-        log.info("Starting automatic plugin updater...");
-        update();
-        log.info("Plugins have been loaded.");
-    }
 
-    @Scheduled(cron = "${plugin.update.scheduler.cron}")
+    @Scheduled(fixedDelay = PLUGIN_UPDATE_DELAY_MILLIS)
     public void update()
     {
         PluginsLoadedEvent event = new PluginsLoadedEvent();
