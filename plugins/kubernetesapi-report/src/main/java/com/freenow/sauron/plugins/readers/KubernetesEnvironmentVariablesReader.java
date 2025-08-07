@@ -22,7 +22,10 @@ import static com.freenow.sauron.plugins.utils.KubernetesResources.POD;
 @RequiredArgsConstructor
 public class KubernetesEnvironmentVariablesReader
 {
+    // Runs a login shell with bash and outputs the environment variables using 'env'
     private static final String ENV_COMMAND = "bash -l -c env";
+    // Reads the environment variables of the oldest running bash process directly from /proc
+    private static final String OLDEST_BASH_ENV_COMMAND = "cat /proc/$(pgrep -o bash)/environ | tr '\0' '\n'";
     private final KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand;
     private final KubernetesExecCommand kubernetesExecCommand;
     private final RetryConfig retryConfig;
@@ -40,26 +43,41 @@ public class KubernetesEnvironmentVariablesReader
     {
         new RetryCommand<Void>(retryConfig).run(() ->
         {
-            boolean foundAll = kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName(), apiClient)
-                .map(V1ObjectMeta::getName)
-                .map(podName -> exec(podName, input, envVarsCheckProperty, apiClient))
-                .orElse(false);
+            Optional<String> podName = kubernetesGetObjectMetaCommand
+                .get(serviceLabel, POD, input.getServiceName(), apiClient)
+                .map(V1ObjectMeta::getName);
 
-            if (!foundAll)
+            if (podName.isEmpty())
             {
-                throw new NoSuchElementException(String.format("Environment variables %s not found.", envVarsCheckProperty));
+                throw new NoSuchElementException(String.format("Pod for service %s not found.", input.getServiceName()));
             }
-            return null;
+
+            // Try OLDEST_BASH_ENV_COMMAND first
+            if (exec(podName.get(), OLDEST_BASH_ENV_COMMAND, input, envVarsCheckProperty, apiClient))
+            {
+                return null;
+            }
+
+            // Fallback to ENV_COMMAND
+            if (exec(podName.get(), ENV_COMMAND, input, envVarsCheckProperty, apiClient))
+            {
+                return null;
+            }
+
+            throw new NoSuchElementException(
+                String.format("Environment variables %s not found in pod %s.", envVarsCheckProperty, podName)
+            );
+
         });
     }
 
 
-    private Boolean exec(String podName, DataSet input, Collection<String> envVarsCheckProperty, ApiClient apiClient)
+    private boolean exec(String podName, String command, DataSet input, Collection<String> envVarsCheckProperty, ApiClient apiClient)
     {
         var found = false;
         for (var envVarToCheck : envVarsCheckProperty)
         {
-            Optional<String> podEnvVars = kubernetesExecCommand.exec(podName, String.format(ENV_COMMAND, envVarToCheck), apiClient);
+            Optional<String> podEnvVars = kubernetesExecCommand.exec(podName, String.format(command, envVarToCheck), apiClient);
             if (podEnvVars.isPresent())
             {
                 Properties props = parse(podEnvVars.get());

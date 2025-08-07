@@ -31,6 +31,7 @@ public class KubernetesEnvironmentVariablesReaderTest
     private static final String SERVICE_LABEL = "label/service.name";
     private static final String SERVICE_NAME = "serviceName";
     private static final String ENV_COMMAND = "bash -l -c env";
+    private static final String OLDEST_BASH_ENV_COMMAND = "cat /proc/$(pgrep -o bash)/environ | tr '\0' '\n'";
     private static final String ENV_ENABLED = "ENV_ENABLED";
     private static final String ENV_VERSION = "ENV_VERSION";
 
@@ -51,7 +52,7 @@ public class KubernetesEnvironmentVariablesReaderTest
 
 
     @Test
-    public void read()
+    public void readFromEnvCommand()
     {
         final var objMetaData = createObjMetaData();
         final var input = dummyDataSet();
@@ -59,6 +60,23 @@ public class KubernetesEnvironmentVariablesReaderTest
         when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
         when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(localEnvVars());
         when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, ENV_VERSION), apiClient)).thenReturn(localEnvVars());
+
+        kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
+        assertNotNull(input);
+        assertEquals("true", input.getStringAdditionalInformation(ENV_ENABLED).get());
+        assertEquals("8080", input.getStringAdditionalInformation(ENV_VERSION).get());
+    }
+
+
+    @Test
+    public void readFromOldestBashEnvCommand()
+    {
+        final var objMetaData = createObjMetaData();
+        final var input = dummyDataSet();
+
+        when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, "", apiClient)).thenReturn(objMetaData);
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(OLDEST_BASH_ENV_COMMAND, ENV_ENABLED), apiClient)).thenReturn(localEnvVars());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(OLDEST_BASH_ENV_COMMAND, ENV_VERSION), apiClient)).thenReturn(localEnvVars());
 
         kubernetesEnvironmentVariablesReader.read(input, SERVICE_LABEL, envVars(), apiClient);
         assertNotNull(input);
