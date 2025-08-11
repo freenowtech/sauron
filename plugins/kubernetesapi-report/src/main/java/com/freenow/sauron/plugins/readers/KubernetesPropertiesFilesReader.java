@@ -9,10 +9,12 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,50 +42,41 @@ public class KubernetesPropertiesFilesReader
     {
         new RetryCommand<Void>(retryConfig).run(() ->
         {
-            boolean foundAll = kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName(), apiClient)
+            kubernetesGetObjectMetaCommand.get(serviceLabel, POD, input.getServiceName(), apiClient)
                 .map(V1ObjectMeta::getName)
-                .map(podName -> exec(podName, input, propertiesFilesCheck, apiClient))
-                .orElse(false);
-
-            if (!foundAll)
-            {
-                throw new NoSuchElementException(String.format("Properties %s not found.", propertiesFilesCheck));
-            }
+                .ifPresent(podName -> exec(podName, input, propertiesFilesCheck, apiClient));
             return null;
         });
     }
 
 
-    private Boolean exec(final String podName, DataSet input, final Map<String, Map<String, String>> propertiesFilesCheck, final ApiClient apiClient)
+    private void exec(final String podName, DataSet input, final Map<String, Map<String, String>> propertiesFilesCheck, final ApiClient apiClient)
     {
-        return propertiesFilesCheck.entrySet().stream().allMatch(it -> {
-            Optional<String> podFileProps = kubernetesExecCommand.exec(podName, String.format(ENV_COMMAND, it.getKey()), apiClient);
+        propertiesFilesCheck.forEach((propFilePath, propKeys) -> {
+            Optional<String> podFileProps = kubernetesExecCommand.exec(podName, String.format(ENV_COMMAND, propFilePath), apiClient);
             if (podFileProps.isPresent())
             {
                 Properties props = parse(podFileProps.get());
-                return matchProps(input, it.getKey(), it.getValue(), props);
+                matchProps(input, propFilePath, propKeys, props);
             }
             else
             {
-                log.info("Properties not found in {} at POD {}", it.getKey(), podName);
-                return false;
+                log.info("Properties file {} not found in POD {}. Properties: {} will be skipped", propFilePath, podName, String.join(",", propKeys.keySet()));
             }
         });
     }
 
 
-    private boolean matchProps(DataSet input, String propFilePath, Map<String, String> propKeys, Properties props)
+    private void matchProps(DataSet input, String propFilePath, Map<String, String> propKeys, Properties props)
     {
-        return propKeys.entrySet().stream().allMatch(prop -> {
-            if (props.containsKey(prop.getValue()))
+        propKeys.forEach((key, value) -> {
+            if (props.containsKey(value))
             {
-                input.setAdditionalInformation(prop.getKey(), props.get(prop.getValue()));
-                return true;
+                input.setAdditionalInformation(key, props.get(value));
             }
             else
             {
-                log.info("Property Key {}, not found at {}", prop.getValue(), propFilePath);
-                return false;
+                log.info("Property Key {}, not found at {}", value, propFilePath);
             }
         });
     }

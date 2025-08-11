@@ -34,6 +34,7 @@ public class KubernetesPropertiesFilesReaderTest
     private static final String PROP_FILE_ENV_VERSION = "dummy.env";
     private static final String ENV_ENABLED = "ENV_ENABLED";
     private static final String ENV_VERSION = "ENV_VERSION";
+    private static final String ENV_ANOTHER = "ENV_ANOTHER";
     private static final String PROPERTIES_FILES_CHECK = "propertiesFilesCheck";
 
     @Mock
@@ -61,6 +62,23 @@ public class KubernetesPropertiesFilesReaderTest
         assertNotNull(input);
         assertEquals("true", input.getStringAdditionalInformation(ENV_ENABLED).get());
         assertEquals("8080", input.getStringAdditionalInformation(ENV_VERSION).get());
+        assertFalse(input.getStringAdditionalInformation(ENV_ANOTHER).isPresent());
+    }
+
+    @Test
+    public void twoPropertiesFilesRequestedToCheckButOneIsNotFound()
+    {
+        final var objMetaData = createObjMetaData();
+        final var input = dummyDataSet();
+        when(kubernetesGetObjectMetaCommand.get(SERVICE_LABEL, POD, SERVICE_NAME, apiClient)).thenReturn(objMetaData);
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, PROP_FILE_ENV_ENABLED), apiClient)).thenReturn(envProps());
+        when(kubernetesExecCommand.exec(objMetaData.get().getName(), String.format(ENV_COMMAND, PROP_FILE_ENV_VERSION), apiClient)).thenReturn(Optional.empty());
+
+        kubernetesPropertiesFilesReader.read(input, SERVICE_LABEL, getPropertyFilesConfig(), apiClient);
+        assertNotNull(input);
+        assertEquals("true", input.getStringAdditionalInformation(ENV_ENABLED).get());
+        assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
+        assertFalse(input.getStringAdditionalInformation(ENV_ANOTHER).isPresent());
     }
 
 
@@ -75,6 +93,7 @@ public class KubernetesPropertiesFilesReaderTest
         assertNotNull(input);
         assertFalse(input.getStringAdditionalInformation(ENV_ENABLED).isPresent());
         assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
+        assertFalse(input.getStringAdditionalInformation(ENV_ANOTHER).isPresent());
     }
 
 
@@ -106,7 +125,8 @@ public class KubernetesPropertiesFilesReaderTest
             Map.of(
                 "dummy.properties",
                 Map.of(
-                    "ENV_ENABLED", "env.is.enabled"
+                    "ENV_ENABLED", "env.is.enabled",
+                    "ENV_ANOTHER", "env.is.not.found"
                 ),
                 "dummy.env", Map.of(
                     "ENV_VERSION", "ENV_VERSION"
