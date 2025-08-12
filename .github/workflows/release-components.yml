@@ -77,7 +77,7 @@ jobs:
         uses: WyriHaximus/github-action-get-previous-tag@v1.0.1
 
       - name: Github Release
-        if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
+        if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true' && matrix.path == 'sauron-service/'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "LICENSE, SECURITY.md, sauron-service/target/*.pom?(.)*, sauron-service/target/*.jar?(.)*, sauron-service/target/*-sources.jar?(.)*, sauron-service/target/*-javadoc.jar?(.)*release.tar.gz,foo/*.txt"
@@ -85,7 +85,7 @@ jobs:
           tag: ${{ steps.previoustag.outputs.tag }}
 
       - name: Extract version
-        if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
+        if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true' && matrix.path == 'sauron-service/'
         id: extractversion
         run: echo "::set-output name=version::$(cut -c16- <<< "${{ steps.previoustag.outputs.tag }}")"
 
@@ -99,7 +99,7 @@ jobs:
           config: .github/buildkitd.toml
 
       - name: Publish to Registry
-        if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true'
+        if: steps.changes.outputs.src == 'true' && steps.changes.outputs.sauron-service == 'true' && matrix.path == 'sauron-service/'
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: freenowtech/sauron/sauron-service
