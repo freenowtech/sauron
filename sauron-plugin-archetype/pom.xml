@@ -7,7 +7,7 @@
     <name>Sauron Plugin Archetype</name>
     <description>Sauron Plugin Archetype</description>
     <packaging>maven-archetype</packaging>
-    <version>0.0.14</version>
+    <version>0.0.15-SNAPSHOT</version>
 
     <url>https://github.com/freenowtech/sauron</url>
 
@@ -35,7 +35,7 @@
     </properties>
 
     <scm>
-        <tag>sauron-plugin-archetype-0.0.14</tag>
+        <tag>HEAD</tag>
         <url>${scm.url}</url>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
