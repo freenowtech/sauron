@@ -20,7 +20,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static com.freenow.sauron.plugins.KubernetesApiReport.PLUGIN_ID;
 import static com.freenow.sauron.plugins.utils.KubernetesResources.POD;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
@@ -62,7 +61,7 @@ public class KubernetesPropertiesFilesReaderTest
         assertNotNull(input);
         assertEquals("true", input.getStringAdditionalInformation(ENV_ENABLED).get());
         assertEquals("8080", input.getStringAdditionalInformation(ENV_VERSION).get());
-        assertFalse(input.getStringAdditionalInformation(ENV_ANOTHER).isPresent());
+        assertEquals("not_found",input.getStringAdditionalInformation(ENV_ANOTHER).get());
     }
 
     @Test
@@ -77,8 +76,8 @@ public class KubernetesPropertiesFilesReaderTest
         kubernetesPropertiesFilesReader.read(input, SERVICE_LABEL, getPropertyFilesConfig(), apiClient);
         assertNotNull(input);
         assertEquals("true", input.getStringAdditionalInformation(ENV_ENABLED).get());
-        assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
-        assertFalse(input.getStringAdditionalInformation(ENV_ANOTHER).isPresent());
+        assertEquals("not_found", input.getStringAdditionalInformation(ENV_VERSION).get());
+        assertEquals("not_found", input.getStringAdditionalInformation(ENV_ANOTHER).get());
     }
 
 
@@ -91,9 +90,9 @@ public class KubernetesPropertiesFilesReaderTest
 
         kubernetesPropertiesFilesReader.read(input, SERVICE_LABEL, getPropertyFilesConfig(), apiClient);
         assertNotNull(input);
-        assertFalse(input.getStringAdditionalInformation(ENV_ENABLED).isPresent());
-        assertFalse(input.getStringAdditionalInformation(ENV_VERSION).isPresent());
-        assertFalse(input.getStringAdditionalInformation(ENV_ANOTHER).isPresent());
+        assertEquals("not_found", input.getStringAdditionalInformation(ENV_ENABLED).get());
+        assertEquals("not_found", input.getStringAdditionalInformation(ENV_VERSION).get());
+        assertEquals("not_found", input.getStringAdditionalInformation(ENV_ANOTHER).get());
     }
 
 
