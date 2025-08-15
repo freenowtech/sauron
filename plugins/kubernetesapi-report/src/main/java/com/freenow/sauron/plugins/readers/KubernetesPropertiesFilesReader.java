@@ -9,12 +9,10 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +23,7 @@ import static com.freenow.sauron.plugins.utils.KubernetesResources.POD;
 public class KubernetesPropertiesFilesReader
 {
     private static final String ENV_COMMAND = "cat %s";
+    public static final String KEY_NOT_FOUND_VALUE = "not_found";
     private final KubernetesGetObjectMetaCommand kubernetesGetObjectMetaCommand;
     private final KubernetesExecCommand kubernetesExecCommand;
     private final RetryConfig retryConfig;
@@ -61,7 +60,18 @@ public class KubernetesPropertiesFilesReader
             }
             else
             {
-                log.info("Properties file {} not found in POD {}. Properties: {} will be skipped", propFilePath, podName, String.join(",", propKeys.keySet()));
+                log.info("Properties file {} not found in POD {}. Properties: {} will be added as not found", propFilePath, podName, String.join(",", propKeys.keySet()));
+                propKeys.forEach((key, value) -> {
+                    try
+                    {
+                        input.setAdditionalInformation(key, KEY_NOT_FOUND_VALUE);
+                    }
+                    catch (NoSuchElementException e)
+                    {
+                        log.warn("Property Key {} not found at {}", key, propFilePath);
+                    }
+                });
+
             }
         });
     }
@@ -77,6 +87,7 @@ public class KubernetesPropertiesFilesReader
             else
             {
                 log.info("Property Key {}, not found at {}", value, propFilePath);
+                input.setAdditionalInformation(key, KEY_NOT_FOUND_VALUE);
             }
         });
     }
