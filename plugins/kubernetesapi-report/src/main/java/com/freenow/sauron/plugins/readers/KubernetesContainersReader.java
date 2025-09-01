@@ -53,7 +53,7 @@ public class KubernetesContainersReader
                         }
                         for (V1Container container : podSpec.getContainers()) {
                             if (containersCheck.contains(PRODUCTION_READINESS)) {
-                                boolean hasReadiness = container.getReadinessProbe() != null;
+                                boolean hasReadiness = container.getReadinessProbe() != null || container.getLivenessProbe() != null;
                                 input.setAdditionalInformation(PRODUCTION_READINESS, String.valueOf(hasReadiness));
                             }
                         }
