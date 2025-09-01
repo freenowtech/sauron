@@ -40,6 +40,8 @@ sauron.plugins:
         "THE_OUTPUT_KEY": "the.prop.key.in.the.file"
       "[/path/to/file_b.env]":
         "ANOTHER_OUTPUT_KEY": "the.prop.key.in.the.file"
+    containersCheck:
+      - productionReadiness
 ```
 
 The possible selectors can be found in

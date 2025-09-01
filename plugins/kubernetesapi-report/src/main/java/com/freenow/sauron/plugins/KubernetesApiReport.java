@@ -22,7 +22,7 @@ public class KubernetesApiReport implements SauronExtension
     static final String SELECTORS_PROPERTY = "selectors";
     static final String ENV_VARS_PROPERTY = "environmentVariablesCheck";
     static final String PROPERTIES_FILES_CHECK = "propertiesFilesCheck";
-    static final String PRODUCTION_READINESS_CHECK = "productionReadinessCheck";
+    static final String CONTAINERS_CHECK = "containersCheck";
     static final String KUBE_CONFIG_FILE_PROPERTY = "kubeConfigFile";
 
     private APIClientFactory apiClientFactory = new APIClientFactory();
@@ -68,10 +68,10 @@ public class KubernetesApiReport implements SauronExtension
                 .map(Map.class::cast)
                 .ifPresent(propFilesCheck -> kubernetesPropertiesFilesReader.read(input, serviceLabel, propFilesCheck, apiClient));
 
-            properties.getPluginConfigurationProperty(PLUGIN_ID, PRODUCTION_READINESS_CHECK).filter(Map.class::isInstance)
+            properties.getPluginConfigurationProperty(PLUGIN_ID, CONTAINERS_CHECK).filter(Map.class::isInstance)
                 .map(Map.class::cast)
-                .map(Map.class::cast)
-                .ifPresent(prodReadinessCheck -> kubernetesContainersReader.read(input, serviceLabel, apiClient));
+                .map(Map::values)
+                .ifPresent(containersCheck -> kubernetesContainersReader.read(input, serviceLabel, containersCheck, apiClient));
         });
         return input;
     }

@@ -6,6 +6,7 @@ import com.freenow.sauron.plugins.utils.RetryCommand;
 import com.freenow.sauron.plugins.utils.RetryConfig;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.*;
+import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,11 +29,11 @@ public class KubernetesContainersReader
         this.retryConfig = new RetryConfig();
     }
 
-    public void read(DataSet input, String serviceLabel, ApiClient apiClient)
+    public void read(DataSet input, String serviceLabel, Collection<String> containersCheck, ApiClient apiClient)
     {
         new RetryCommand<Void>(retryConfig).run(() ->
         {
-            Optional<V1DeploymentSpec> deploymentSpecOpt = kubernetesGetDeploymentSpecCommand.getDeployment(
+            Optional<V1DeploymentSpec> deploymentSpecOpt = kubernetesGetDeploymentSpecCommand.getDeploymentSpec(
                     String.valueOf(serviceLabel),
                     DEPLOYMENT,
                     input.getServiceName(),
@@ -45,12 +46,17 @@ public class KubernetesContainersReader
                 try
                 {
                     deploymentSpecOpt.ifPresent(deploymentSpec -> {
-                        assert deploymentSpec.getTemplate().getSpec() != null;
-                        deploymentSpec.getTemplate().getSpec().getContainers().forEach(container -> {
-                            boolean hasReadiness = container.getReadinessProbe() != null;
-                                    input.setAdditionalInformation(PRODUCTION_READINESS, String.valueOf(hasReadiness));
+                        V1PodSpec podSpec = deploymentSpec.getTemplate().getSpec();
+                        if (podSpec == null) {
+                            log.warn("deployment by name: {} doesn't have spec", deploymentName);
+                            return;
+                        }
+                        for (V1Container container : podSpec.getContainers()) {
+                            if (containersCheck.contains(PRODUCTION_READINESS)) {
+                                boolean hasReadiness = container.getReadinessProbe() != null;
+                                input.setAdditionalInformation(PRODUCTION_READINESS, String.valueOf(hasReadiness));
                             }
-                        );
+                        }
                     });
                 }
                 catch (Exception e)
