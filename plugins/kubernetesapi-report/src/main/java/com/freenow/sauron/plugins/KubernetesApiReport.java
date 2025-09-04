@@ -4,6 +4,7 @@ import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.readers.KubernetesEnvironmentVariablesReader;
 import com.freenow.sauron.plugins.readers.KubernetesLabelAnnotationReader;
 import com.freenow.sauron.plugins.readers.KubernetesPropertiesFilesReader;
+import com.freenow.sauron.plugins.readers.KubernetesContainersReader;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.util.Map;
 import lombok.NoArgsConstructor;
@@ -21,24 +22,28 @@ public class KubernetesApiReport implements SauronExtension
     static final String SELECTORS_PROPERTY = "selectors";
     static final String ENV_VARS_PROPERTY = "environmentVariablesCheck";
     static final String PROPERTIES_FILES_CHECK = "propertiesFilesCheck";
+    static final String CONTAINERS_CHECK = "containersCheck";
     static final String KUBE_CONFIG_FILE_PROPERTY = "kubeConfigFile";
 
     private APIClientFactory apiClientFactory = new APIClientFactory();
     private KubernetesLabelAnnotationReader kubernetesLabelAnnotationReader = new KubernetesLabelAnnotationReader();
     private KubernetesEnvironmentVariablesReader kubernetesEnvironmentVariablesReader = new KubernetesEnvironmentVariablesReader();
     private KubernetesPropertiesFilesReader kubernetesPropertiesFilesReader = new KubernetesPropertiesFilesReader();
+    private KubernetesContainersReader kubernetesContainersReader = new KubernetesContainersReader();
 
 
     public KubernetesApiReport(
         final APIClientFactory apiClientFactory,
         final KubernetesLabelAnnotationReader kubernetesLabelAnnotationReader,
         final KubernetesEnvironmentVariablesReader kubernetesEnvironmentVariablesReader,
-        final KubernetesPropertiesFilesReader kubernetesPropertiesFilesReader)
+        final KubernetesPropertiesFilesReader kubernetesPropertiesFilesReader,
+        final KubernetesContainersReader kubernetesContainersReader)
     {
         this.apiClientFactory = apiClientFactory;
         this.kubernetesLabelAnnotationReader = kubernetesLabelAnnotationReader;
         this.kubernetesEnvironmentVariablesReader = kubernetesEnvironmentVariablesReader;
         this.kubernetesPropertiesFilesReader = kubernetesPropertiesFilesReader;
+        this.kubernetesContainersReader = kubernetesContainersReader;
     }
 
 
@@ -62,6 +67,11 @@ public class KubernetesApiReport implements SauronExtension
                 .map(Map.class::cast)
                 .map(Map.class::cast)
                 .ifPresent(propFilesCheck -> kubernetesPropertiesFilesReader.read(input, serviceLabel, propFilesCheck, apiClient));
+
+            properties.getPluginConfigurationProperty(PLUGIN_ID, CONTAINERS_CHECK).filter(Map.class::isInstance)
+                .map(Map.class::cast)
+                .map(Map::values)
+                .ifPresent(containersCheck -> kubernetesContainersReader.read(input, serviceLabel, containersCheck, apiClient));
         });
         return input;
     }
