@@ -20,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import static com.freenow.sauron.plugins.utils.KubernetesResources.DEPLOYMENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -27,7 +28,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class KubernetesContainersReaderTest {
+public class KubernetesContainersReaderTest
+{
     private static final String SERVICE_LABEL = "label/service.name";
     private static final String SERVICE_NAME = "serviceName";
 
@@ -38,10 +40,13 @@ public class KubernetesContainersReaderTest {
     @InjectMocks
     private KubernetesContainersReader kubernetesContainersReader;
 
+
     @Before
-    public void setUp() {
+    public void setUp()
+    {
         kubernetesContainersReader = new KubernetesContainersReader(kubernetesGetDeploymentSpecCommand, new RetryConfig());
     }
+
 
     @Test
     public void deploymentIsReadyOnly()
@@ -55,6 +60,7 @@ public class KubernetesContainersReaderTest {
         assertEquals("false", input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
     }
 
+
     @Test
     public void deploymentIsLiveOnly()
     {
@@ -66,6 +72,7 @@ public class KubernetesContainersReaderTest {
         assertEquals("false", input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).get());
         assertEquals("true", input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
     }
+
 
     @Test
     public void deploymentIsLiveAndReady()
@@ -80,8 +87,10 @@ public class KubernetesContainersReaderTest {
         assertEquals("true", input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
     }
 
+
     @Test
-    public void deploymentIsNotReady(){
+    public void deploymentIsNotReady()
+    {
         final var deploymentData = createDeploymentData(false, false, false);
         final var input = dummyDataSet();
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient)).thenReturn(deploymentData);
@@ -93,26 +102,31 @@ public class KubernetesContainersReaderTest {
 
 
     @Test
-    public void deploymentNotFoundSetsNoReadiness() {
+    public void deploymentNotFoundSetsNoReadiness()
+    {
         final var input = dummyDataSet();
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
-                .thenReturn(Optional.empty());
+            .thenReturn(Optional.empty());
         kubernetesContainersReader.read(input, SERVICE_LABEL, containersCheck(), apiClient);
         assertFalse(input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
     }
 
+
     @Test
-    public void deploymentTemplateSpecIsNull() {
+    public void deploymentTemplateSpecIsNull()
+    {
         final var input = dummyDataSet();
         final var deploymentData = createDeploymentData(true, false, true);
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
-                .thenReturn(deploymentData);
+            .thenReturn(deploymentData);
         kubernetesContainersReader.read(input, SERVICE_LABEL, containersCheck(), apiClient);
         assertFalse(input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
     }
 
+
     @Test
-    public void containersReadinessIsNotRequested() {
+    public void containersReadinessIsNotRequested()
+    {
         final var input = dummyDataSet();
         final var deploymentData = createDeploymentData(true, false, false);
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
@@ -121,7 +135,9 @@ public class KubernetesContainersReaderTest {
         assertFalse(input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
     }
 
-    private Optional<V1DeploymentSpec> createDeploymentData(boolean readinessProbe, boolean livenessProbe, boolean isNullSpec) {
+
+    private Optional<V1DeploymentSpec> createDeploymentData(boolean readinessProbe, boolean livenessProbe, boolean isNullSpec)
+    {
         V1Container container = new V1Container().name("test-container")
             .livenessProbe(livenessProbe ? new V1Probe() : null)
             .readinessProbe(readinessProbe ? new V1Probe() : null);
@@ -138,6 +154,7 @@ public class KubernetesContainersReaderTest {
         return Optional.of(deploymentSpec);
     }
 
+
     private DataSet dummyDataSet()
     {
         DataSet dataSet = new DataSet();
@@ -145,10 +162,12 @@ public class KubernetesContainersReaderTest {
         return dataSet;
     }
 
+
     private Collection<String> containersCheck()
     {
         return List.of(KubernetesContainersReader.READINESS, KubernetesContainersReader.LIVENESS);
     }
+
 
     private Collection<String> emptyList()
     {

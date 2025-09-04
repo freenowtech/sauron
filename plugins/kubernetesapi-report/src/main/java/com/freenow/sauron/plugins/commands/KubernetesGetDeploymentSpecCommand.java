@@ -18,9 +18,11 @@ import static com.freenow.sauron.plugins.utils.KubernetesConstants.K8S_PRETTY_OU
 public class KubernetesGetDeploymentSpecCommand
 {
     //defined to let us override it in the tests and inject a mock
-    protected AppsV1Api createAppsV1Api(ApiClient client) {
+    protected AppsV1Api createAppsV1Api(ApiClient client)
+    {
         return new AppsV1Api(client);
     }
+
 
     public Optional<V1DeploymentSpec> getDeploymentSpec(String serviceLabel, KubernetesResources resource, String service, ApiClient client)
     {
@@ -29,22 +31,25 @@ public class KubernetesGetDeploymentSpecCommand
             String labelSelector = String.format("%s=%s", serviceLabel, service);
             log.debug("Filtering deployment {} using selector {}", resource, labelSelector);
             return createAppsV1Api(client).listNamespacedDeployment(
-                            K8S_DEFAULT_NAMESPACE,
-                            K8S_PRETTY_OUTPUT,
-                            false,
-                            null,
-                            null,
-                            labelSelector,
-                            null,
-                            null,
-                            null,
-                            K8S_API_TIMEOUT_SECONDS,
-                            false
-                    )
+                    K8S_DEFAULT_NAMESPACE,
+                    K8S_PRETTY_OUTPUT,
+                    false,
+                    null,
+                    null,
+                    labelSelector,
+                    null,
+                    null,
+                    null,
+                    K8S_API_TIMEOUT_SECONDS,
+                    false
+                )
                 .getItems().stream()
                 .max(Comparator.comparing(
                     d -> {
-                        if (d.getMetadata() == null) return null;
+                        if (d.getMetadata() == null)
+                        {
+                            return null;
+                        }
                         return d.getMetadata().getCreationTimestamp();
                     }, Comparator.nullsLast(Comparator.naturalOrder())
                 ))

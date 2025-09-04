@@ -5,22 +5,22 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.models.*;
 import java.util.Optional;
 import org.junit.Test;
-import org.mockito.Mock;
 import com.freenow.sauron.plugins.commands.KubernetesGetDeploymentSpecCommand;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
+
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.*;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 
-
 public class KubernetesGetDeploymentSpecCommandTest
 {
     @Test
-    public void testGetDeploymentSpecReturnsLatestDeployment() throws ApiException {
+    public void testGetDeploymentSpecReturnsLatestDeployment() throws ApiException
+    {
         // Arrange
         ApiClient apiClient = mock(ApiClient.class);
         AppsV1Api appsV1Api = mock(AppsV1Api.class);
@@ -42,9 +42,11 @@ public class KubernetesGetDeploymentSpecCommandTest
             .thenReturn(deploymentList);
 
         // Override createAppsV1Api to return your mock
-        KubernetesGetDeploymentSpecCommand command = new KubernetesGetDeploymentSpecCommand() {
+        KubernetesGetDeploymentSpecCommand command = new KubernetesGetDeploymentSpecCommand()
+        {
             @Override
-            protected AppsV1Api createAppsV1Api(ApiClient client) {
+            protected AppsV1Api createAppsV1Api(ApiClient client)
+            {
                 return appsV1Api;
             }
         };

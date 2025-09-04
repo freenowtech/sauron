@@ -139,11 +139,12 @@ public class KubernetesApiReportTest
         props.put("serviceLabel", SERVICE_LABEL);
         props.put("selectors", dummySelectors());
         props.put("environmentVariablesCheck", Map.of("0", "ENV_ENABLED", "1", "ENV_VERSION"));
-        props.put("apiClientConfig", Map.of(
-            "default", "",
-            "cluster-a", "https://kubernetes.cluster-a.com",
-            "cluster-b", "https://kubernetes.cluster-b.com"
-        ));
+        props.put(
+            "apiClientConfig", Map.of(
+                "default", "",
+                "cluster-a", "https://kubernetes.cluster-a.com",
+                "cluster-b", "https://kubernetes.cluster-b.com"
+            ));
 
         properties.put(PLUGIN_ID, props);
         return properties;

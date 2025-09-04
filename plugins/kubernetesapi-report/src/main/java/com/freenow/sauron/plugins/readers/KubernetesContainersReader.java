@@ -35,11 +35,13 @@ public class KubernetesContainersReader
         READINESS, new ReadinessCheckStrategy()
     );
 
+
     public KubernetesContainersReader()
     {
         this.kubernetesGetDeploymentSpecCommand = new KubernetesGetDeploymentSpecCommand();
         this.retryConfig = new RetryConfig();
     }
+
 
     public void read(DataSet input, String serviceLabel, Collection<String> containersCheck, ApiClient apiClient)
     {
@@ -51,10 +53,10 @@ public class KubernetesContainersReader
         new RetryCommand<Void>(retryConfig).run(() ->
         {
             Optional<V1DeploymentSpec> deploymentSpecOpt = kubernetesGetDeploymentSpecCommand.getDeploymentSpec(
-                    String.valueOf(serviceLabel),
-                    DEPLOYMENT,
-                    input.getServiceName(),
-                    apiClient
+                String.valueOf(serviceLabel),
+                DEPLOYMENT,
+                input.getServiceName(),
+                apiClient
             );
 
             if (deploymentSpecOpt.isPresent())
@@ -64,12 +66,15 @@ public class KubernetesContainersReader
                 {
                     deploymentSpecOpt.ifPresent(deploymentSpec -> {
                         V1PodSpec podSpec = deploymentSpec.getTemplate().getSpec();
-                        if (podSpec == null) {
+                        if (podSpec == null)
+                        {
                             log.warn("deployment by name: {} doesn't have spec", deploymentName);
                             return;
                         }
-                        for (V1Container container : podSpec.getContainers()) {
-                            for (ContainerCheckStrategy strategy : strategiesToApply) {
+                        for (V1Container container : podSpec.getContainers())
+                        {
+                            for (ContainerCheckStrategy strategy : strategiesToApply)
+                            {
                                 strategy.check(container, input);
                             }
                         }

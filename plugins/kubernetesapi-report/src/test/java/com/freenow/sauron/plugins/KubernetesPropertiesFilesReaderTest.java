@@ -61,8 +61,9 @@ public class KubernetesPropertiesFilesReaderTest
         assertNotNull(input);
         assertEquals("true", input.getStringAdditionalInformation(ENV_ENABLED).get());
         assertEquals("8080", input.getStringAdditionalInformation(ENV_VERSION).get());
-        assertEquals("not_found",input.getStringAdditionalInformation(ENV_ANOTHER).get());
+        assertEquals("not_found", input.getStringAdditionalInformation(ENV_ANOTHER).get());
     }
+
 
     @Test
     public void twoPropertiesFilesRequestedToCheckButOneIsNotFound()
