@@ -2,11 +2,17 @@ package com.freenow.sauron.plugins.readers;
 
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.commands.KubernetesGetDeploymentSpecCommand;
+import com.freenow.sauron.plugins.utils.ContainerCheckStrategy;
+import com.freenow.sauron.plugins.utils.LivenessCheckStrategy;
+import com.freenow.sauron.plugins.utils.ReadinessCheckStrategy;
 import com.freenow.sauron.plugins.utils.RetryCommand;
 import com.freenow.sauron.plugins.utils.RetryConfig;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.*;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +27,13 @@ public class KubernetesContainersReader
 {
     private final KubernetesGetDeploymentSpecCommand kubernetesGetDeploymentSpecCommand;
     private final RetryConfig retryConfig;
-    public static final String PRODUCTION_READINESS = "productionReadiness";
+    public static final String LIVENESS = "liveness";
+    public static final String READINESS = "readiness";
+
+    public static final Map<String, ContainerCheckStrategy> strategies = Map.of(
+        LIVENESS, new LivenessCheckStrategy(),
+        READINESS, new ReadinessCheckStrategy()
+    );
 
     public KubernetesContainersReader()
     {
@@ -31,6 +43,11 @@ public class KubernetesContainersReader
 
     public void read(DataSet input, String serviceLabel, Collection<String> containersCheck, ApiClient apiClient)
     {
+        List<ContainerCheckStrategy> strategiesToApply = containersCheck.stream()
+            .map(strategies::get)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
         new RetryCommand<Void>(retryConfig).run(() ->
         {
             Optional<V1DeploymentSpec> deploymentSpecOpt = kubernetesGetDeploymentSpecCommand.getDeploymentSpec(
@@ -52,9 +69,8 @@ public class KubernetesContainersReader
                             return;
                         }
                         for (V1Container container : podSpec.getContainers()) {
-                            if (containersCheck.contains(PRODUCTION_READINESS)) {
-                                boolean hasReadiness = container.getReadinessProbe() != null || container.getLivenessProbe() != null;
-                                input.setAdditionalInformation(PRODUCTION_READINESS, String.valueOf(hasReadiness));
+                            for (ContainerCheckStrategy strategy : strategiesToApply) {
+                                strategy.check(container, input);
                             }
                         }
                     });
