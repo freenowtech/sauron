@@ -4,6 +4,7 @@ import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.commands.KubernetesGetDeploymentSpecCommand;
 import com.freenow.sauron.plugins.utils.ContainerCheckStrategy;
 import com.freenow.sauron.plugins.utils.LivenessCheckStrategy;
+import com.freenow.sauron.plugins.utils.NoContainerCheckStrategy;
 import com.freenow.sauron.plugins.utils.ReadinessCheckStrategy;
 import com.freenow.sauron.plugins.utils.RetryCommand;
 import com.freenow.sauron.plugins.utils.RetryConfig;
@@ -29,10 +30,13 @@ public class KubernetesContainersReader
     private final RetryConfig retryConfig;
     public static final String LIVENESS = "liveness";
     public static final String READINESS = "readiness";
+    public static final String PROBE_PATH = "probePath";
+    public static final String NOCHECK = "no-check";
 
     public static final Map<String, ContainerCheckStrategy> strategies = Map.of(
         LIVENESS, new LivenessCheckStrategy(),
-        READINESS, new ReadinessCheckStrategy()
+        READINESS, new ReadinessCheckStrategy(),
+        NOCHECK, new NoContainerCheckStrategy()
     );
 
 
@@ -46,8 +50,7 @@ public class KubernetesContainersReader
     public void read(DataSet input, String serviceLabel, Collection<String> containersCheck, ApiClient apiClient)
     {
         List<ContainerCheckStrategy> strategiesToApply = containersCheck.stream()
-            .map(strategies::get)
-            .filter(Objects::nonNull)
+            .map(name -> strategies.getOrDefault(name, strategies.get(NOCHECK)))
             .collect(Collectors.toList());
 
         new RetryCommand<Void>(retryConfig).run(() ->
@@ -78,6 +81,7 @@ public class KubernetesContainersReader
                                 strategy.check(container, input);
                             }
                         }
+                        checkAndSetProbePath(input, podSpec);
                     });
                 }
                 catch (Exception e)
@@ -91,5 +95,22 @@ public class KubernetesContainersReader
             }
             return null;
         });
+    }
+
+
+    private void checkAndSetProbePath(DataSet input, V1PodSpec podSpec)
+    {
+        if (podSpec == null || podSpec.getContainers() == null)
+        {
+            return;
+        }
+
+        boolean hasProbe = podSpec.getContainers().stream()
+            .anyMatch(container -> container.getLivenessProbe() != null || container.getReadinessProbe() != null);
+
+        if (hasProbe)
+        {
+            input.setAdditionalInformation(PROBE_PATH, "true");
+        }
     }
 }

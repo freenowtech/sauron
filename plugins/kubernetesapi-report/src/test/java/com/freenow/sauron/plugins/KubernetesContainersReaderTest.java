@@ -25,6 +25,7 @@ import static com.freenow.sauron.plugins.utils.KubernetesResources.DEPLOYMENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -133,6 +134,62 @@ public class KubernetesContainersReaderTest
             .thenReturn(deploymentData);
         kubernetesContainersReader.read(input, SERVICE_LABEL, emptyList(), apiClient);
         assertFalse(input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
+    }
+
+
+    @Test
+    public void probePathIsSetWhenLivenessOrReadinessExists()
+    {
+        // Test with only readiness probe
+        var deploymentWithReadiness = createDeploymentData(true, false, false);
+        var inputReadiness = dummyDataSet();
+        when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
+            .thenReturn(deploymentWithReadiness);
+        kubernetesContainersReader.read(inputReadiness, SERVICE_LABEL, containersCheck(), apiClient);
+        assertTrue(inputReadiness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
+        assertEquals("true", inputReadiness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).get());
+
+        // Test with only liveness probe
+        var deploymentWithLiveness = createDeploymentData(false, true, false);
+        var inputLiveness = dummyDataSet();
+        when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
+            .thenReturn(deploymentWithLiveness);
+        kubernetesContainersReader.read(inputLiveness, SERVICE_LABEL, containersCheck(), apiClient);
+        assertTrue(inputLiveness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
+        assertEquals("true", inputLiveness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).get());
+
+        // Test with both probes
+        var deploymentWithBoth = createDeploymentData(true, true, false);
+        var inputBoth = dummyDataSet();
+        when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
+            .thenReturn(deploymentWithBoth);
+        kubernetesContainersReader.read(inputBoth, SERVICE_LABEL, containersCheck(), apiClient);
+        assertTrue(inputBoth.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
+        assertEquals("true", inputBoth.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).get());
+
+        // Test with no probes
+        var deploymentWithNone = createDeploymentData(false, false, false);
+        var inputNone = dummyDataSet();
+        when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
+            .thenReturn(deploymentWithNone);
+        kubernetesContainersReader.read(inputNone, SERVICE_LABEL, containersCheck(), apiClient);
+        assertFalse(inputNone.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
+    }
+
+
+    @Test
+    public void logsWarningAndDoesNotSetReadinessOrLivenessWhenNoDeploymentFound()
+    {
+        final var input = dummyDataSet();
+        // Simulate no deployment found
+        when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
+            .thenReturn(Optional.empty());
+
+        kubernetesContainersReader.read(input, SERVICE_LABEL, containersCheck(), apiClient);
+
+        // No readiness or liveness info should be present
+        assertFalse(input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
+        assertFalse(input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).isPresent());
     }
 
 

@@ -30,7 +30,7 @@ public class KubernetesGetDeploymentSpecCommand
         {
             String labelSelector = String.format("%s=%s", serviceLabel, service);
             log.debug("Filtering deployment {} using selector {}", resource, labelSelector);
-            return createAppsV1Api(client).listNamespacedDeployment(
+            var deployments = createAppsV1Api(client).listNamespacedDeployment(
                     K8S_DEFAULT_NAMESPACE,
                     K8S_PRETTY_OUTPUT,
                     false,
@@ -43,7 +43,15 @@ public class KubernetesGetDeploymentSpecCommand
                     K8S_API_TIMEOUT_SECONDS,
                     false
                 )
-                .getItems().stream()
+                .getItems();
+
+            if (deployments.isEmpty())
+            {
+                log.warn("No deployment found for service '{}' with selector '{}'", service, labelSelector);
+                return Optional.empty();
+            }
+
+            return deployments.stream()
                 .max(Comparator.comparing(
                     d -> {
                         if (d.getMetadata() == null)
