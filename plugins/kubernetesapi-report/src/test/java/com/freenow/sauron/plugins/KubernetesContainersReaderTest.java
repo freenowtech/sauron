@@ -146,8 +146,8 @@ public class KubernetesContainersReaderTest
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
             .thenReturn(deploymentWithReadiness);
         kubernetesContainersReader.read(inputReadiness, SERVICE_LABEL, containersCheck(), apiClient);
-        assertTrue(inputReadiness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
-        assertEquals("true", inputReadiness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).get());
+        assertTrue(inputReadiness.getStringAdditionalInformation(KubernetesContainersReader.HEALTH_CHECK_PATH).isPresent());
+        assertEquals("true", inputReadiness.getStringAdditionalInformation(KubernetesContainersReader.HEALTH_CHECK_PATH).get());
 
         // Test with only liveness probe
         var deploymentWithLiveness = createDeploymentData(false, true, false);
@@ -155,8 +155,8 @@ public class KubernetesContainersReaderTest
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
             .thenReturn(deploymentWithLiveness);
         kubernetesContainersReader.read(inputLiveness, SERVICE_LABEL, containersCheck(), apiClient);
-        assertTrue(inputLiveness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
-        assertEquals("true", inputLiveness.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).get());
+        assertTrue(inputLiveness.getStringAdditionalInformation(KubernetesContainersReader.HEALTH_CHECK_PATH).isPresent());
+        assertEquals("true", inputLiveness.getStringAdditionalInformation(KubernetesContainersReader.HEALTH_CHECK_PATH).get());
 
         // Test with both probes
         var deploymentWithBoth = createDeploymentData(true, true, false);
@@ -164,8 +164,8 @@ public class KubernetesContainersReaderTest
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
             .thenReturn(deploymentWithBoth);
         kubernetesContainersReader.read(inputBoth, SERVICE_LABEL, containersCheck(), apiClient);
-        assertTrue(inputBoth.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
-        assertEquals("true", inputBoth.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).get());
+        assertTrue(inputBoth.getStringAdditionalInformation(KubernetesContainersReader.HEALTH_CHECK_PATH).isPresent());
+        assertEquals("true", inputBoth.getStringAdditionalInformation(KubernetesContainersReader.HEALTH_CHECK_PATH).get());
 
         // Test with no probes
         var deploymentWithNone = createDeploymentData(false, false, false);
@@ -173,7 +173,7 @@ public class KubernetesContainersReaderTest
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient))
             .thenReturn(deploymentWithNone);
         kubernetesContainersReader.read(inputNone, SERVICE_LABEL, containersCheck(), apiClient);
-        assertFalse(inputNone.getStringAdditionalInformation(KubernetesContainersReader.PROBE_PATH).isPresent());
+        assertFalse(inputNone.getStringAdditionalInformation(KubernetesContainersReader.HEALTH_CHECK_PATH).isPresent());
     }
 
 

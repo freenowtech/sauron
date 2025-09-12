@@ -30,7 +30,7 @@ public class KubernetesContainersReader
     private final RetryConfig retryConfig;
     public static final String LIVENESS = "liveness";
     public static final String READINESS = "readiness";
-    public static final String PROBE_PATH = "probePath";
+    public static final String HEALTH_CHECK_PATH = "healthCheckPath";
     public static final String NOCHECK = "no-check";
 
     public static final Map<String, ContainerCheckStrategy> strategies = Map.of(
@@ -81,7 +81,7 @@ public class KubernetesContainersReader
                                 strategy.check(container, input);
                             }
                         }
-                        checkAndSetProbePath(input, podSpec);
+                        checkAndSetHealthCheckPath(input, podSpec);
                     });
                 }
                 catch (Exception e)
@@ -98,7 +98,7 @@ public class KubernetesContainersReader
     }
 
 
-    private void checkAndSetProbePath(DataSet input, V1PodSpec podSpec)
+    private void checkAndSetHealthCheckPath(DataSet input, V1PodSpec podSpec)
     {
         if (podSpec == null || podSpec.getContainers() == null)
         {
@@ -110,7 +110,7 @@ public class KubernetesContainersReader
 
         if (hasProbe)
         {
-            input.setAdditionalInformation(PROBE_PATH, "true");
+            input.setAdditionalInformation(HEALTH_CHECK_PATH, "true");
         }
     }
 }
