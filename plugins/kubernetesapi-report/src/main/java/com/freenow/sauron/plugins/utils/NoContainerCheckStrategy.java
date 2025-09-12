@@ -1,22 +1,23 @@
 package com.freenow.sauron.plugins.utils;
 
-import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.readers.KubernetesContainersReader;
 import io.kubernetes.client.openapi.models.V1Container;
+import com.freenow.sauron.model.DataSet;
+import lombok.extern.slf4j.Slf4j;
 
-public class LivenessCheckStrategy implements ContainerCheckStrategy
+@Slf4j
+public class NoContainerCheckStrategy implements ContainerCheckStrategy
 {
     @Override
     public String getName()
     {
-        return KubernetesContainersReader.LIVENESS;
+        return KubernetesContainersReader.NOCHECK;
     }
 
 
     @Override
     public void check(V1Container container, DataSet input)
     {
-        boolean hasLiveness = container.getLivenessProbe() != null;
-        input.setAdditionalInformation(getName(), String.valueOf(hasLiveness));
+        log.warn("No check implementation for strategy: {}", this.getClass().getSimpleName());
     }
 }
