@@ -8,16 +8,17 @@ import com.freenow.sauron.plugins.utils.ReadinessCheckStrategy;
 import com.freenow.sauron.plugins.utils.RetryCommand;
 import com.freenow.sauron.plugins.utils.RetryConfig;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.models.*;
+import io.kubernetes.client.openapi.models.V1Container;
+import io.kubernetes.client.openapi.models.V1DeploymentSpec;
+import io.kubernetes.client.openapi.models.V1PodSpec;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Objects;
-import java.util.Optional;
 
 import static com.freenow.sauron.plugins.utils.KubernetesResources.DEPLOYMENT;
 
@@ -29,6 +30,7 @@ public class KubernetesContainersReader
     private final RetryConfig retryConfig;
     public static final String LIVENESS = "liveness";
     public static final String READINESS = "readiness";
+    public static final String HAS_HEALTH_CHECK = "hasHealthCheck";
 
     public static final Map<String, ContainerCheckStrategy> strategies = Map.of(
         LIVENESS, new LivenessCheckStrategy(),
@@ -46,6 +48,12 @@ public class KubernetesContainersReader
     public void read(DataSet input, String serviceLabel, Collection<String> containersCheck, ApiClient apiClient)
     {
         List<ContainerCheckStrategy> strategiesToApply = containersCheck.stream()
+            .peek(check -> {
+                if (!strategies.containsKey(check))
+                {
+                    log.error("Missing container check implementation for: {} - proceeding with available checks...", check);
+                }
+            })
             .map(strategies::get)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
@@ -53,7 +61,7 @@ public class KubernetesContainersReader
         new RetryCommand<Void>(retryConfig).run(() ->
         {
             Optional<V1DeploymentSpec> deploymentSpecOpt = kubernetesGetDeploymentSpecCommand.getDeploymentSpec(
-                String.valueOf(serviceLabel),
+                serviceLabel,
                 DEPLOYMENT,
                 input.getServiceName(),
                 apiClient
@@ -68,7 +76,7 @@ public class KubernetesContainersReader
                         V1PodSpec podSpec = deploymentSpec.getTemplate().getSpec();
                         if (podSpec == null)
                         {
-                            log.warn("deployment by name: {} doesn't have spec", deploymentName);
+                            log.warn("Deployment by name: {} doesn't have spec", deploymentName);
                             return;
                         }
                         for (V1Container container : podSpec.getContainers())
@@ -89,7 +97,23 @@ public class KubernetesContainersReader
             {
                 log.warn("Deployment not found for service: {}", input.getServiceName());
             }
+
+            setHasHealthCheckPath(input, containersCheck);
             return null;
         });
+    }
+
+
+    /*
+     * Sets the hasHealthCheck flag in the dataset if any of the specified health check probes are present, giving priority to the liveness probe.
+     */
+    private void setHasHealthCheckPath(DataSet input, final Collection<String> containersCheck)
+    {
+        boolean hasHealthCheck =
+            input.getBooleanAdditionalInformation(LIVENESS).orElse(false) ||
+                containersCheck.stream()
+                    .anyMatch(check -> input.getBooleanAdditionalInformation(check).orElse(false));
+
+        input.setAdditionalInformation(HAS_HEALTH_CHECK, hasHealthCheck);
     }
 }

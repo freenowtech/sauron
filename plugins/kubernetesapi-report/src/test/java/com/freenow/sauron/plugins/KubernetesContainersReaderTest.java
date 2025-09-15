@@ -5,9 +5,9 @@ import com.freenow.sauron.plugins.commands.KubernetesGetDeploymentSpecCommand;
 import com.freenow.sauron.plugins.readers.KubernetesContainersReader;
 import com.freenow.sauron.plugins.utils.RetryConfig;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1DeploymentSpec;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.kubernetes.client.openapi.models.V1PodTemplateSpec;
 import io.kubernetes.client.openapi.models.V1Probe;
@@ -21,10 +21,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.freenow.sauron.plugins.readers.KubernetesContainersReader.HAS_HEALTH_CHECK;
 import static com.freenow.sauron.plugins.utils.KubernetesResources.DEPLOYMENT;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -56,8 +57,10 @@ public class KubernetesContainersReaderTest
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient)).thenReturn(deploymentData);
         kubernetesContainersReader.read(input, SERVICE_LABEL, containersCheck(), apiClient);
         assertNotNull(input);
-        assertEquals("true", input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).get());
-        assertEquals("false", input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).isPresent());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).get());
+        assertFalse(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
     }
 
 
@@ -69,8 +72,10 @@ public class KubernetesContainersReaderTest
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient)).thenReturn(deploymentData);
         kubernetesContainersReader.read(input, SERVICE_LABEL, containersCheck(), apiClient);
         assertNotNull(input);
-        assertEquals("false", input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).get());
-        assertEquals("true", input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).isPresent());
+        assertFalse(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).get());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
     }
 
 
@@ -83,8 +88,10 @@ public class KubernetesContainersReaderTest
 
         kubernetesContainersReader.read(input, SERVICE_LABEL, containersCheck(), apiClient);
         assertNotNull(input);
-        assertEquals("true", input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).get());
-        assertEquals("true", input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).isPresent());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).get());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
     }
 
 
@@ -96,8 +103,10 @@ public class KubernetesContainersReaderTest
         when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient)).thenReturn(deploymentData);
         kubernetesContainersReader.read(input, SERVICE_LABEL, containersCheck(), apiClient);
         assertNotNull(input);
-        assertEquals("false", input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).get());
-        assertEquals("false", input.getStringAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
+        assertTrue(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).isPresent());
+        assertFalse(input.getBooleanAdditionalInformation(KubernetesContainersReader.READINESS).get());
+        assertFalse(input.getBooleanAdditionalInformation(KubernetesContainersReader.LIVENESS).get());
     }
 
 
@@ -133,6 +142,33 @@ public class KubernetesContainersReaderTest
             .thenReturn(deploymentData);
         kubernetesContainersReader.read(input, SERVICE_LABEL, emptyList(), apiClient);
         assertFalse(input.getStringAdditionalInformation(KubernetesContainersReader.READINESS).isPresent());
+    }
+
+
+    @Test
+    public void hasContainerHealthCheck()
+    {
+        final var input = dummyDataSet();
+        final var deploymentData = createDeploymentData(true, true, false);
+        when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient)).thenReturn(deploymentData);
+
+        kubernetesContainersReader.read(input, SERVICE_LABEL, List.of("liveness", "readiness"), apiClient);
+
+        assertTrue(input.getBooleanAdditionalInformation(HAS_HEALTH_CHECK).isPresent());
+        assertTrue(input.getBooleanAdditionalInformation(HAS_HEALTH_CHECK).get());
+    }
+
+
+    @Test
+    public void hasNoContainerHealthCheck()
+    {
+        final var input = dummyDataSet();
+        final var deploymentData = createDeploymentData(false, false, false);
+        when(kubernetesGetDeploymentSpecCommand.getDeploymentSpec(SERVICE_LABEL, DEPLOYMENT, SERVICE_NAME, apiClient)).thenReturn(deploymentData);
+
+        kubernetesContainersReader.read(input, SERVICE_LABEL, List.of("liveness", "readiness", "Startup"), apiClient);
+        assertTrue(input.getBooleanAdditionalInformation(HAS_HEALTH_CHECK).isPresent());
+        assertFalse(input.getBooleanAdditionalInformation(HAS_HEALTH_CHECK).get());
     }
 
 
