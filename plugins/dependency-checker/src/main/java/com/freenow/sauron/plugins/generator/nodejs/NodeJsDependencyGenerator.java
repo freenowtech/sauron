@@ -4,23 +4,29 @@ import com.freenow.sauron.plugins.command.Command;
 import com.freenow.sauron.plugins.command.NonZeroExitCodeException;
 import com.freenow.sauron.plugins.generator.DependencyGenerator;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-
-import static com.freenow.sauron.plugins.command.Command.BASH_C_OPTION;
-import static com.freenow.sauron.plugins.command.Command.BIN_BASH;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class NodeJsDependencyGenerator extends DependencyGenerator
 {
-    public static final String CYCLONEDX_NPM_OUTPUT_FILE_BOM_XML = " npx @cyclonedx/cyclonedx-npm --omit dev --output-format XML --output-file bom.xml";
-    private static final String NPM_CI_OMIT_DEV = " ci --omit=dev";
+    private static final String BOM_JSON = "bom.json";
+    private static final String[] NPM_SBOM = {
+            "sbom",
+            "--omit=dev",
+            "--sbom-format=cyclonedx",
+            "--package-lock-only",
+            "--legacy-peer-deps",
+    };
 
-    public static class PackageLockJsonMissingException extends IllegalStateException
+    private static class PackageLockJsonMissingException extends IllegalStateException
     {
         private PackageLockJsonMissingException()
         {
@@ -28,16 +34,15 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
         }
     }
 
-    public static class YarnNotSupportedException extends IllegalStateException
+    private static class PackageManagerNotSupportedException extends IllegalStateException
     {
-        private YarnNotSupportedException(String message)
+        private PackageManagerNotSupportedException(String packageManager, String message)
         {
-            super("Yarn is not supported: " + message);
+            super(packageManager + " is not supported: " + message);
         }
     }
 
     private String npmBin = "npm";
-    private String npxBin = "npx";
 
 
     public NodeJsDependencyGenerator(PluginsConfigurationProperties properties)
@@ -51,7 +56,6 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
                 {
                     Map<String, Object> config = (Map<String, Object>) nodeJsConfig;
                     this.npmBin = (String) config.getOrDefault("npm", npmBin);
-                    this.npxBin = (String) config.getOrDefault("npx", npxBin);
                 }
                 else
                 {
@@ -66,7 +70,7 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
     {
         try
         {
-            npmInstall(repositoryPath);
+            checkPackageManager(repositoryPath);
             return buildCycloneDxBom(repositoryPath);
         }
         catch (IllegalStateException e)
@@ -82,38 +86,48 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
     }
 
 
-    private void npmInstall(Path repositoryPath) throws IOException, InterruptedException, YarnNotSupportedException, PackageLockJsonMissingException, NonZeroExitCodeException
+    private void checkPackageManager(Path repositoryPath) throws PackageManagerNotSupportedException, PackageLockJsonMissingException
     {
         requireNotYarn(repositoryPath);
+        requireNotPnpm(repositoryPath);
         requirePackageLockJson(repositoryPath);
-        Command.builder()
-            .commandTimeout(commandTimeoutMinutes)
-            .repositoryPath(repositoryPath)
-            .commandline(
-                List.of(npmBin.concat(" ").concat(NPM_CI_OMIT_DEV).split("\\s+"))
-            )
-            .build()
-            .run();
     }
 
 
     private Path buildCycloneDxBom(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException
     {
+        Path bomJson = repositoryPath.resolve(BOM_JSON);
         Command.builder()
             .commandTimeout(commandTimeoutMinutes)
             .repositoryPath(repositoryPath)
-            .commandline(List.of(BIN_BASH, BASH_C_OPTION, CYCLONEDX_NPM_OUTPUT_FILE_BOM_XML))
+            .commandline(
+                Stream.concat(
+                    Stream.of(npmBin),
+                    Arrays.stream(NPM_SBOM)
+                )
+                    .collect(Collectors.toList())
+            )
+            .outputFile(bomJson)
             .build()
             .run();
-        return repositoryPath.resolve("bom.xml");
+        return bomJson;
     }
 
 
-    private void requireNotYarn(Path repositoryPath) throws YarnNotSupportedException
+    private void requireNotYarn(Path repositoryPath) throws PackageManagerNotSupportedException
     {
         if (Files.exists(repositoryPath.resolve("yarn.lock")))
         {
-            throw new YarnNotSupportedException("Found yarn.lock file");
+            throw new PackageManagerNotSupportedException("yarn", "Found yarn.lock file");
+        }
+    }
+
+
+    private void requireNotPnpm(Path repositoryPath) throws PackageManagerNotSupportedException
+    {
+        if (Files.exists(repositoryPath.resolve("pnpm-lock.yaml")))
+        {
+            throw new PackageManagerNotSupportedException("pnpm", "Found pnpm-lock.yaml file");
         }
     }
 

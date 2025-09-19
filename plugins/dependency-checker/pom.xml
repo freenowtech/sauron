@@ -37,7 +37,7 @@
         <jackson.version>2.15.0</jackson.version>
         <elasticsearch.version>7.10.2</elasticsearch.version>
         <scm.url>scm:git:git@github.com:freenowtech/sauron.git</scm.url>
-        <cyclonedx-core-java.version>7.3.2</cyclonedx-core-java.version>
+        <cyclonedx-core-java.version>8.0.3</cyclonedx-core-java.version>
     </properties>
 
     <scm>
@@ -93,6 +93,14 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>2.20.0</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

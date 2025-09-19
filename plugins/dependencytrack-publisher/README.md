@@ -2,7 +2,7 @@
 
 ### Description
 
-This plugin will takes the generated bom.xml file in previous step and publish to our internal
+This plugin takes the generated SBOM file from the previous step and publishes it to our internal
 [Dependency Track](https://dependencytrack.org/) instance.
 
 ### Configuration
@@ -26,7 +26,7 @@ sauron.plugins:
 
 - commitId: Id of the commit that is being built.
 
-- cycloneDxBomPath: Path to the bom.xml file.
+- cycloneDxBomPath: Path to the `bom.xml` or `bom.json` file.
 
 ### Output
 
