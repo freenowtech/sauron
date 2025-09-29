@@ -1,5 +1,7 @@
 package com.freenow.sauron.plugins.elasticsearch;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -7,58 +9,127 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.NormalizeDependencyVersion;
 import com.freenow.sauron.plugins.ProjectType;
+import lombok.Data;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.LicenseChoice;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ch.qos.logback.core.CoreConstants.EMPTY_STRING;
 
-public class DependenciesModel extends HashMap<String, Object>
+@Data
+public class DependenciesModel
 {
-    private static final String LICENSES = "licenses";
+    private final String serviceName;
+    private final String commitId;
+    private final Date eventTime;
+    private final String buildId;
+    private final String owner;
+    private final String environment;
+    private final String projectType;
+    private final Map<String, Dependency> dependencies;
 
-    public DependenciesModel(DataSet dataSet, List<Map> dependencies)
+    @JsonAnyGetter
+    public Map<String, Object> getDependencies() {
+        Map<String, Object> result = new HashMap<>();
+
+        Set<License> licenses = new HashSet<>();
+
+        for (Map.Entry<String, Dependency> dependencyEntry : dependencies.entrySet()) {
+            String key = dependencyEntry.getKey();
+            Dependency dependency = dependencyEntry.getValue();
+
+            result.put(key, dependency.version);
+            result.put(key.concat("-normalized"), dependency.normalizedVersion);
+            result.put(key.concat("-license"), dependency.license);
+
+            licenses.addAll(dependency.licenses);
+        }
+
+        result.put("licenses", licenses);
+
+        return result;
+    }
+
+    @Data
+    private static class Dependency
     {
-        this.put("serviceName", dataSet.getServiceName());
-        this.put("commitId", dataSet.getCommitId());
-        this.put("eventTime", dataSet.getEventTime());
-        this.put("buildId", dataSet.getBuildId());
-        this.put("owner", dataSet.getOwner());
+        private final String version;
+        private final String normalizedVersion;
+        private final String license;
+        private final List<License> licenses;
+    }
 
-        this.put("environment", dataSet.getStringAdditionalInformation("environment").orElse("none"));
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Data
+    private static class License
+    {
+        private final String id;
+        private final String name;
+        private final String url;
 
-        String projectType = dataSet.getStringAdditionalInformation("projectType").orElse("none");
-        this.put("projectType", projectType);
-
-        dependencies.forEach(dependency ->
+        private static List<License> createLicenseList(LicenseChoice licenseChoice)
         {
-            String key = determineKey(ProjectType.valueOf(projectType), dependency);
-            String value = String.valueOf(dependency.get("version"));
-            this.put(key, value);
-            this.put(key.concat("-normalized"), NormalizeDependencyVersion.toMajorMinorIncremental(value));
+            if (licenseChoice == null)
+            {
+                return Collections.emptyList();
+            }
+            if (licenseChoice.getLicenses() == null)
+            {
+                return Collections.emptyList();
+            }
 
-            List<Map> mapOfLicenses = (List<Map>) Optional.ofNullable(
-                    ((LinkedHashMap) Optional.ofNullable(dependency.getOrDefault(LICENSES, new LinkedHashMap<>())).orElse(new LinkedHashMap<>())).getOrDefault(LICENSES, Collections.emptyList())
-            ).orElse(Collections.emptyList());
-
-            String licenseId = mapOfLicenses.stream()
-                    .findFirst()
-                    .map(license -> license.getOrDefault("id", EMPTY_STRING))
-                    .orElse(EMPTY_STRING)
-                    .toString();
-
-            this.put(key.concat("-license"), licenseId);
-
-            Set<Map> allLicenses = (Set<Map>) this.getOrDefault(LICENSES, new HashSet<>());
-            allLicenses.addAll(mapOfLicenses);
-            this.put(LICENSES, allLicenses);
-        });
+            return licenseChoice.getLicenses().stream().map(license -> new License(license.getId(), license.getName(), license.getUrl())).collect(Collectors.toList());
+        }
     }
 
 
-    private String determineKey(ProjectType projectType, Map<?, ?> dependency)
+    public static DependenciesModel from(DataSet dataSet, List<Component> dependencies)
     {
-        String group = (String) dependency.get("group");
-        String name = (String) dependency.get("name");
+        ProjectType projectType = dataSet.getStringAdditionalInformation("projectType")
+            .map(ProjectType::valueOf)
+            .orElse(ProjectType.UNKNOWN);
+
+        return new DependenciesModel(
+            dataSet.getServiceName(),
+            dataSet.getCommitId(),
+            dataSet.getEventTime(),
+            dataSet.getBuildId(),
+            dataSet.getOwner(),
+            dataSet.getStringAdditionalInformation("environment").orElse("none"),
+            projectType.name(),
+            dependencies.stream().collect(Collectors.toMap(
+                dependency -> determineKey(projectType, dependency),
+                dependency -> {
+                    String version = String.valueOf(dependency.getVersion());
+                    String normalizedVersion = NormalizeDependencyVersion.toMajorMinorIncremental(version);
+                    List<License> licenses = License.createLicenseList(dependency.getLicenseChoice());
+                    String license = licenses.stream().findFirst().flatMap(l -> Optional.ofNullable(l.getId())).orElse(EMPTY_STRING);
+
+                    return new Dependency(
+                        version,
+                        normalizedVersion,
+                        license,
+                        licenses
+                    );
+                }
+            ))
+        );
+    }
+
+
+    private static String determineKey(ProjectType projectType, Component dependency)
+    {
+        String group = dependency.getGroup();
+        String name = dependency.getName();
 
         /*
          * Node and python modules don't have a group but can have a scope (e.g. @<scope>/package-name) which CycloneDX

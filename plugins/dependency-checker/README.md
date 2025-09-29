@@ -18,7 +18,7 @@ This plugin does not need a configuration.
 
 ### Output
 
-- cycloneDxBomPath: Path to the cycloneDx `bom.xml`
+- cycloneDxBomPath: Path to the cycloneDx `bom.xml` or `bom.json`
 
 - projectType: Project type. Possible values:
    - `MAVEN`

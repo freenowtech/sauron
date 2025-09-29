@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-docker run --rm -v $PWD:/wrk -w /wrk node:18.16.0 npx $1
