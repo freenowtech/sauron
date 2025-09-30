@@ -1,6 +1,7 @@
 package com.freenow.sauron.plugins.elasticsearch;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +11,7 @@ import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.NormalizeDependencyVersion;
 import com.freenow.sauron.plugins.ProjectType;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.LicenseChoice;
 
@@ -19,12 +21,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ch.qos.logback.core.CoreConstants.EMPTY_STRING;
 
+@Slf4j
 @Data
 public class DependenciesModel
 {
@@ -62,6 +66,8 @@ public class DependenciesModel
     @Data
     private static class Dependency
     {
+        @JsonIgnore
+        private final String name;
         private final String version;
         private final String normalizedVersion;
         private final String license;
@@ -115,11 +121,18 @@ public class DependenciesModel
                     String license = licenses.stream().findFirst().flatMap(l -> Optional.ofNullable(l.getId())).orElse(EMPTY_STRING);
 
                     return new Dependency(
+                        determineKey(projectType, dependency),
                         version,
                         normalizedVersion,
                         license,
                         licenses
                     );
+                },
+                (dependency1, dependency2) -> {
+                    if (!Objects.equals(dependency1, dependency2)) {
+                        log.warn("Inconsistent duplicated dependency found: {}, {}", dependency1, dependency2);
+                    }
+                    return dependency1;
                 }
             ))
         );
