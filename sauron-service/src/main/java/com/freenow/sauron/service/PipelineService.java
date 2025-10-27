@@ -127,6 +127,7 @@ public class PipelineService
                 MDC.put("sauron.pluginId", plugin);
                 MDC.put("sauron.serviceName", request.getServiceName());
                 MDC.put("sauron.commitId", request.getCommitId());
+                MDC.put("sauron.buildId", request.getBuildId());
                 log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet);
                 
                 long startTime = System.currentTimeMillis();
@@ -137,13 +138,14 @@ public class PipelineService
             }
             catch (final Exception ex)
             {
-                log.error("Error in plugin '{}' for serviceName={}, commitId={}", plugin, request.getServiceName(), request.getCommitId(), ex);
+                log.error("Error in plugin '{}' for serviceName={}, commitId={}. DataSet at time of failure: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet, ex);
             }
             finally
             {
                 MDC.remove("sauron.pluginId");
                 MDC.remove("sauron.serviceName");
                 MDC.remove("sauron.commitId");
+                MDC.remove("sauron.buildId");
             }
         });
     }
