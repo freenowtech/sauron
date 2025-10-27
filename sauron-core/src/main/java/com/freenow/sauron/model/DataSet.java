@@ -94,6 +94,24 @@ public class DataSet
     }
 
 
+    @Override
+    public String toString()
+    {
+        try
+        {
+            return toJson();
+        }
+        catch (JsonProcessingException e)
+        {
+            return "DataSet{" +
+                "serviceName='" + serviceName + '\'' +
+                ", commitId='" + commitId + '\'' +
+                ", additionalInformation=" + additionalInformation +
+                '}';
+        }
+    }
+
+
     public String toJson() throws JsonProcessingException
     {
         ObjectMapper jsonMapper = new ObjectMapper();

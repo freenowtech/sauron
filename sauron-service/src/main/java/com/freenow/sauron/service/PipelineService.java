@@ -51,6 +51,7 @@ public class PipelineService
     {
         try
         {
+            log.info("Received request to publish: serviceName={}, commitId={}", request.getServiceName(), request.getCommitId());
             handler.handle(request);
         }
         catch (Exception ex)
@@ -64,7 +65,9 @@ public class PipelineService
     {
         try
         {
+            log.info("Starting processing for request: serviceName={}, commitId={}", request.getServiceName(), request.getCommitId());
             final DataSet dataSet = BuildMapper.makeDataSet(request);
+            log.debug("Initial DataSet created from request: {}", dataSet);
             String plugin = request.getPlugin();
 
             if (StringUtils.isNotBlank(plugin))
@@ -72,25 +75,28 @@ public class PipelineService
                 plugin = StringUtils.lowerCase(request.getPlugin());
                 final List<String> defaultPipeline = pipelineProperties.getDefaultPipeline();
 
-                log.debug("Running user defined pipeline.");
+                log.debug("User-defined plugin specified: {}. Running user defined pipeline. Default pipeline plugins: {}", plugin, defaultPipeline);
 
                 if (defaultPipeline.contains(plugin))
                 {
+                    log.debug("User-defined plugin '{}' is part of the default pipeline. Running dependencies first.", plugin);
                     runDependencies(request, dataSet, plugin, defaultPipeline);
                 }
 
+                log.debug("Executing user-defined plugin: {}", plugin);
                 runPlugin(plugin, request, dataSet);
+                log.debug("Executing mandatory output plugin: {}", ELASTICSEARCH_OUTPUT_PLUGIN);
                 runPlugin(ELASTICSEARCH_OUTPUT_PLUGIN, request, dataSet);
             }
             else
             {
-                log.debug("Running default pipeline.");
+                log.debug("No user-defined plugin. Running default pipeline. Default pipeline plugins: {}", pipelineProperties.getDefaultPipeline());
                 pipelineProperties.getDefaultPipeline().forEach(pluginId -> runPlugin(pluginId, request, dataSet));
             }
         }
         catch (final Exception ex)
         {
-            log.error(String.format("Error loading plugins: %s", ex.getMessage()), ex);
+            log.error("Error processing request for serviceName={}, commitId={}", request.getServiceName(), request.getCommitId(), ex);
         }
     }
 
@@ -103,9 +109,11 @@ public class PipelineService
         {
             if (StringUtils.equals(plugin, defaultPipelinePlugin))
             {
+                log.debug("Dependency plugin '{}' is the main plugin '{}', skipping further dependencies.", defaultPipelinePlugin, plugin);
                 return;
             }
 
+            log.debug("Running dependency plugin: {} for main plugin: {}", defaultPipelinePlugin, plugin);
             runPlugin(defaultPipelinePlugin, request, dataSet);
         }
     }
@@ -116,15 +124,22 @@ public class PipelineService
         pluginManager.getExtensions(SauronExtension.class, plugin).forEach(pluginExtension -> {
             try
             {
-                log.debug(String.format("Applying pluginId: %s. Processing service %s - %s", plugin, request.getServiceName(), request.getCommitId()));
                 MDC.put("sauron.pluginId", plugin);
                 MDC.put("sauron.serviceName", request.getServiceName());
                 MDC.put("sauron.commitId", request.getCommitId());
+                log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet);
                 pluginExtension.apply(pluginsProperties, dataSet);
+                log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet);
             }
             catch (final Exception ex)
             {
-                log.error(String.format("Error processing pipeline: %s:%s. %s", request.getServiceName(), request.getCommitId(), ex.getMessage()), ex);
+                log.error("Error in plugin '{}' for serviceName={}, commitId={}", plugin, request.getServiceName(), request.getCommitId(), ex);
+            }
+            finally
+            {
+                MDC.remove("sauron.pluginId");
+                MDC.remove("sauron.serviceName");
+                MDC.remove("sauron.commitId");
             }
         });
     }
