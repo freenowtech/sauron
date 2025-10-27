@@ -128,7 +128,11 @@ public class PipelineService
                 MDC.put("sauron.serviceName", request.getServiceName());
                 MDC.put("sauron.commitId", request.getCommitId());
                 log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet);
+                
+                long startTime = System.currentTimeMillis();
                 pluginExtension.apply(pluginsProperties, dataSet);
+                long duration = System.currentTimeMillis() - startTime;
+                log.info("Plugin '{}' executed in {}ms", plugin, duration);
                 log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet);
             }
             catch (final Exception ex)
