@@ -7,7 +7,10 @@ import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.SauronExtension;
 import com.freenow.sauron.properties.PipelineConfigurationProperties;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.pf4j.PluginManager;
@@ -21,8 +24,6 @@ import org.springframework.stereotype.Service;
 @EnableConfigurationProperties({PipelineConfigurationProperties.class, PluginsConfigurationProperties.class})
 public class PipelineService
 {
-    private static final String ELASTICSEARCH_OUTPUT_PLUGIN = "elasticsearch-output";
-
     private final PipelineConfigurationProperties pipelineProperties;
 
     private final PluginsConfigurationProperties pluginsProperties;
@@ -31,18 +32,22 @@ public class PipelineService
 
     private final RequestHandler handler;
 
+    private final MeterRegistry meterRegistry;
+
 
     @Autowired
     public PipelineService(
         PluginManager pluginManager,
         PipelineConfigurationProperties pipelineProperties,
         PluginsConfigurationProperties pluginsProperties,
-        RequestHandler handler)
+        RequestHandler handler,
+        MeterRegistry meterRegistry)
     {
         this.pluginManager = pluginManager;
         this.pipelineProperties = pipelineProperties;
         this.pluginsProperties = pluginsProperties;
         this.handler = handler;
+        this.meterRegistry = meterRegistry;
         handler.setConsumer(this::process);
     }
 
@@ -66,8 +71,8 @@ public class PipelineService
         try
         {
             log.info("Starting processing for request: serviceName={}, commitId={}", request.getServiceName(), request.getCommitId());
-            final DataSet dataSet = BuildMapper.makeDataSet(request);
-            log.debug("Initial DataSet created from request: {}", dataSet);
+            final AtomicReference<DataSet> dataSet = new AtomicReference<>(BuildMapper.makeDataSet(request));
+            log.debug("Initial DataSet created from request: {}", dataSet.get());
             String plugin = request.getPlugin();
 
             if (StringUtils.isNotBlank(plugin))
@@ -80,18 +85,22 @@ public class PipelineService
                 if (defaultPipeline.contains(plugin))
                 {
                     log.debug("User-defined plugin '{}' is part of the default pipeline. Running dependencies first.", plugin);
-                    runDependencies(request, dataSet, plugin, defaultPipeline);
+                    runDependencies(dataSet, plugin, defaultPipeline);
                 }
 
                 log.debug("Executing user-defined plugin: {}", plugin);
-                runPlugin(plugin, request, dataSet);
-                log.debug("Executing mandatory output plugin: {}", ELASTICSEARCH_OUTPUT_PLUGIN);
-                runPlugin(ELASTICSEARCH_OUTPUT_PLUGIN, request, dataSet);
+                runPlugin(plugin, dataSet);
+
+                String mandatoryOutputPlugin = pipelineProperties.getMandatoryOutputPlugin();
+                if (StringUtils.isNotBlank(mandatoryOutputPlugin)) {
+                    log.debug("Executing mandatory output plugin: {}", mandatoryOutputPlugin);
+                    runPlugin(mandatoryOutputPlugin, dataSet);
+                }
             }
             else
             {
                 log.debug("No user-defined plugin. Running default pipeline. Default pipeline plugins: {}", pipelineProperties.getDefaultPipeline());
-                pipelineProperties.getDefaultPipeline().forEach(pluginId -> runPlugin(pluginId, request, dataSet));
+                pipelineProperties.getDefaultPipeline().forEach(pluginId -> runPlugin(pluginId, dataSet));
             }
         }
         catch (final Exception ex)
@@ -102,8 +111,7 @@ public class PipelineService
 
 
     private void runDependencies(
-        final BuildRequest request, final DataSet dataSet,
-        final String plugin, final List<String> defaultPipeline)
+        final AtomicReference<DataSet> dataSet, final String plugin, final List<String> defaultPipeline)
     {
         for (final String defaultPipelinePlugin : defaultPipeline)
         {
@@ -114,31 +122,36 @@ public class PipelineService
             }
 
             log.debug("Running dependency plugin: {} for main plugin: {}", defaultPipelinePlugin, plugin);
-            runPlugin(defaultPipelinePlugin, request, dataSet);
+            runPlugin(defaultPipelinePlugin, dataSet);
         }
     }
 
 
-    void runPlugin(String plugin, BuildRequest request, DataSet dataSet)
+    void runPlugin(String plugin, AtomicReference<DataSet> dataSet)
     {
         pluginManager.getExtensions(SauronExtension.class, plugin).forEach(pluginExtension -> {
             try
             {
                 MDC.put("sauron.pluginId", plugin);
-                MDC.put("sauron.serviceName", request.getServiceName());
-                MDC.put("sauron.commitId", request.getCommitId());
-                MDC.put("sauron.buildId", request.getBuildId());
-                log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet);
-                
-                long startTime = System.currentTimeMillis();
-                pluginExtension.apply(pluginsProperties, dataSet);
-                long duration = System.currentTimeMillis() - startTime;
-                log.info("Plugin '{}' executed in {}ms", plugin, duration);
-                log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet);
+                MDC.put("sauron.serviceName", dataSet.get().getServiceName());
+                MDC.put("sauron.commitId", dataSet.get().getCommitId());
+                MDC.put("sauron.buildId", dataSet.get().getBuildId());
+                log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, dataSet.get().getServiceName(), dataSet.get().getCommitId(), dataSet.get());
+
+                DataSet newDataSet = getTimerBuilder("sauron.plugin.execution.time")
+                    .tag("plugin", plugin)
+                    .tag("service", dataSet.get().getServiceName())
+                    .tag("commit", dataSet.get().getCommitId())
+                    .register(meterRegistry).record(() -> pluginExtension.apply(pluginsProperties, dataSet.get()));
+                dataSet.set(newDataSet);
+
+                meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "success").increment();
+                log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, dataSet.get().getServiceName(), dataSet.get().getCommitId(), dataSet.get());
             }
             catch (final Exception ex)
             {
-                log.error("Error in plugin '{}' for serviceName={}, commitId={}. DataSet at time of failure: {}", plugin, request.getServiceName(), request.getCommitId(), dataSet, ex);
+                meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "failure").increment();
+                log.error("Error in plugin '{}' for serviceName={}, commitId={}. DataSet at time of failure: {}", plugin, dataSet.get().getServiceName(), dataSet.get().getCommitId(), dataSet.get(), ex);
             }
             finally
             {
@@ -148,5 +161,11 @@ public class PipelineService
                 MDC.remove("sauron.buildId");
             }
         });
+    }
+
+
+    Timer.Builder getTimerBuilder(String name)
+    {
+        return Timer.builder(name);
     }
 }
