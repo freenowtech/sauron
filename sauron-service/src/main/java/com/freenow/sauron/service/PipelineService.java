@@ -10,7 +10,6 @@ import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.pf4j.PluginManager;
@@ -71,8 +70,8 @@ public class PipelineService
         try
         {
             log.info("Starting processing for request: serviceName={}, commitId={}", request.getServiceName(), request.getCommitId());
-            final AtomicReference<DataSet> dataSet = new AtomicReference<>(BuildMapper.makeDataSet(request));
-            log.debug("Initial DataSet created from request: {}", dataSet.get());
+            DataSet dataSet = BuildMapper.makeDataSet(request);
+            log.debug("Initial DataSet created from request: {}", dataSet);
             String plugin = request.getPlugin();
 
             if (StringUtils.isNotBlank(plugin))
@@ -111,7 +110,7 @@ public class PipelineService
 
 
     private void runDependencies(
-        final AtomicReference<DataSet> dataSet, final String plugin, final List<String> defaultPipeline)
+        DataSet dataSet, final String plugin, final List<String> defaultPipeline)
     {
         for (final String defaultPipelinePlugin : defaultPipeline)
         {
@@ -127,31 +126,33 @@ public class PipelineService
     }
 
 
-    void runPlugin(String plugin, AtomicReference<DataSet> dataSet)
+    void runPlugin(String plugin, DataSet dataSet)
     {
-        pluginManager.getExtensions(SauronExtension.class, plugin).forEach(pluginExtension -> {
+        for (SauronExtension pluginExtension : pluginManager.getExtensions(SauronExtension.class, plugin))
+        {
             try
             {
                 MDC.put("sauron.pluginId", plugin);
-                MDC.put("sauron.serviceName", dataSet.get().getServiceName());
-                MDC.put("sauron.commitId", dataSet.get().getCommitId());
-                MDC.put("sauron.buildId", dataSet.get().getBuildId());
-                log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, dataSet.get().getServiceName(), dataSet.get().getCommitId(), dataSet.get());
+                MDC.put("sauron.serviceName", dataSet.getServiceName());
+                MDC.put("sauron.commitId", dataSet.getCommitId());
+                MDC.put("sauron.buildId", dataSet.getBuildId());
+                log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(),
+                    dataSet);
 
-                DataSet newDataSet = getTimerBuilder("sauron.plugin.execution.time")
+                final DataSet dataSetForLambda = dataSet;
+                dataSet = getTimerBuilder("sauron.plugin.execution.time")
                     .tag("plugin", plugin)
-                    .tag("service", dataSet.get().getServiceName())
-                    .tag("commit", dataSet.get().getCommitId())
-                    .register(meterRegistry).record(() -> pluginExtension.apply(pluginsProperties, dataSet.get()));
-                dataSet.set(newDataSet);
+                    .tag("service", dataSet.getServiceName())
+                    .tag("commit", dataSet.getCommitId())
+                    .register(meterRegistry).record(() -> pluginExtension.apply(pluginsProperties, dataSetForLambda));
 
                 meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "success").increment();
-                log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, dataSet.get().getServiceName(), dataSet.get().getCommitId(), dataSet.get());
+                log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(), dataSet);
             }
             catch (final Exception ex)
             {
                 meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "failure").increment();
-                log.error("Error in plugin '{}' for serviceName={}, commitId={}. DataSet at time of failure: {}", plugin, dataSet.get().getServiceName(), dataSet.get().getCommitId(), dataSet.get(), ex);
+                log.error("Error in plugin '{}' for serviceName={}, commitId={}. DataSet at time of failure: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(), dataSet, ex);
             }
             finally
             {
@@ -160,7 +161,7 @@ public class PipelineService
                 MDC.remove("sauron.commitId");
                 MDC.remove("sauron.buildId");
             }
-        });
+        }
     }
 
 
