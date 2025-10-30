@@ -7,6 +7,8 @@ import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.SauronExtension;
 import com.freenow.sauron.properties.PipelineConfigurationProperties;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,8 +23,6 @@ import org.springframework.stereotype.Service;
 @EnableConfigurationProperties({PipelineConfigurationProperties.class, PluginsConfigurationProperties.class})
 public class PipelineService
 {
-    private static final String ELASTICSEARCH_OUTPUT_PLUGIN = "elasticsearch-output";
-
     private final PipelineConfigurationProperties pipelineProperties;
 
     private final PluginsConfigurationProperties pluginsProperties;
@@ -31,18 +31,22 @@ public class PipelineService
 
     private final RequestHandler handler;
 
+    private final MeterRegistry meterRegistry;
+
 
     @Autowired
     public PipelineService(
         PluginManager pluginManager,
         PipelineConfigurationProperties pipelineProperties,
         PluginsConfigurationProperties pluginsProperties,
-        RequestHandler handler)
+        RequestHandler handler,
+        MeterRegistry meterRegistry)
     {
         this.pluginManager = pluginManager;
         this.pipelineProperties = pipelineProperties;
         this.pluginsProperties = pluginsProperties;
         this.handler = handler;
+        this.meterRegistry = meterRegistry;
         handler.setConsumer(this::process);
     }
 
@@ -51,6 +55,7 @@ public class PipelineService
     {
         try
         {
+            log.info("Received request to publish: serviceName={}, commitId={}", request.getServiceName(), request.getCommitId());
             handler.handle(request);
         }
         catch (Exception ex)
@@ -64,7 +69,9 @@ public class PipelineService
     {
         try
         {
-            final DataSet dataSet = BuildMapper.makeDataSet(request);
+            log.info("Starting processing for request: serviceName={}, commitId={}", request.getServiceName(), request.getCommitId());
+            DataSet dataSet = BuildMapper.makeDataSet(request);
+            log.debug("Initial DataSet created from request: {}", dataSet);
             String plugin = request.getPlugin();
 
             if (StringUtils.isNotBlank(plugin))
@@ -72,60 +79,93 @@ public class PipelineService
                 plugin = StringUtils.lowerCase(request.getPlugin());
                 final List<String> defaultPipeline = pipelineProperties.getDefaultPipeline();
 
-                log.debug("Running user defined pipeline.");
+                log.debug("User-defined plugin specified: {}. Running user defined pipeline. Default pipeline plugins: {}", plugin, defaultPipeline);
 
                 if (defaultPipeline.contains(plugin))
                 {
-                    runDependencies(request, dataSet, plugin, defaultPipeline);
+                    log.debug("User-defined plugin '{}' is part of the default pipeline. Running dependencies first.", plugin);
+                    runDependencies(dataSet, plugin, defaultPipeline);
                 }
 
-                runPlugin(plugin, request, dataSet);
-                runPlugin(ELASTICSEARCH_OUTPUT_PLUGIN, request, dataSet);
+                log.debug("Executing user-defined plugin: {}", plugin);
+                runPlugin(plugin, dataSet);
+
+                String mandatoryOutputPlugin = pipelineProperties.getMandatoryOutputPlugin();
+                if (StringUtils.isNotBlank(mandatoryOutputPlugin)) {
+                    log.debug("Executing mandatory output plugin: {}", mandatoryOutputPlugin);
+                    runPlugin(mandatoryOutputPlugin, dataSet);
+                }
             }
             else
             {
-                log.debug("Running default pipeline.");
-                pipelineProperties.getDefaultPipeline().forEach(pluginId -> runPlugin(pluginId, request, dataSet));
+                log.debug("No user-defined plugin. Running default pipeline. Default pipeline plugins: {}", pipelineProperties.getDefaultPipeline());
+                pipelineProperties.getDefaultPipeline().forEach(pluginId -> runPlugin(pluginId, dataSet));
             }
         }
         catch (final Exception ex)
         {
-            log.error(String.format("Error loading plugins: %s", ex.getMessage()), ex);
+            log.error("Error processing request for serviceName={}, commitId={}", request.getServiceName(), request.getCommitId(), ex);
         }
     }
 
 
     private void runDependencies(
-        final BuildRequest request, final DataSet dataSet,
-        final String plugin, final List<String> defaultPipeline)
+        DataSet dataSet, final String plugin, final List<String> defaultPipeline)
     {
         for (final String defaultPipelinePlugin : defaultPipeline)
         {
             if (StringUtils.equals(plugin, defaultPipelinePlugin))
             {
+                log.debug("Dependency plugin '{}' is the main plugin '{}', skipping further dependencies.", defaultPipelinePlugin, plugin);
                 return;
             }
 
-            runPlugin(defaultPipelinePlugin, request, dataSet);
+            log.debug("Running dependency plugin: {} for main plugin: {}", defaultPipelinePlugin, plugin);
+            runPlugin(defaultPipelinePlugin, dataSet);
         }
     }
 
 
-    void runPlugin(String plugin, BuildRequest request, DataSet dataSet)
+    void runPlugin(String plugin, DataSet dataSet)
     {
-        pluginManager.getExtensions(SauronExtension.class, plugin).forEach(pluginExtension -> {
+        for (SauronExtension pluginExtension : pluginManager.getExtensions(SauronExtension.class, plugin))
+        {
             try
             {
-                log.debug(String.format("Applying pluginId: %s. Processing service %s - %s", plugin, request.getServiceName(), request.getCommitId()));
                 MDC.put("sauron.pluginId", plugin);
-                MDC.put("sauron.serviceName", request.getServiceName());
-                MDC.put("sauron.commitId", request.getCommitId());
-                pluginExtension.apply(pluginsProperties, dataSet);
+                MDC.put("sauron.serviceName", dataSet.getServiceName());
+                MDC.put("sauron.commitId", dataSet.getCommitId());
+                MDC.put("sauron.buildId", dataSet.getBuildId());
+                log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(),
+                    dataSet);
+
+                getTimerBuilder("sauron.plugin.execution.time")
+                    .tag("plugin", plugin)
+                    .tag("service", dataSet.getServiceName())
+                    .tag("commit", dataSet.getCommitId())
+                    .register(meterRegistry).record(() -> pluginExtension.apply(pluginsProperties, dataSet));
+
+                meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "success").increment();
+                log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(), dataSet);
             }
             catch (final Exception ex)
             {
-                log.error(String.format("Error processing pipeline: %s:%s. %s", request.getServiceName(), request.getCommitId(), ex.getMessage()), ex);
+                meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "failure").increment();
+                log.error("Error in plugin '{}' for serviceName={}, commitId={}. DataSet at time of failure: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(), dataSet, ex);
             }
-        });
+            finally
+            {
+                MDC.remove("sauron.pluginId");
+                MDC.remove("sauron.serviceName");
+                MDC.remove("sauron.commitId");
+                MDC.remove("sauron.buildId");
+            }
+        }
+    }
+
+
+    Timer.Builder getTimerBuilder(String name)
+    {
+        return Timer.builder(name);
     }
 }
