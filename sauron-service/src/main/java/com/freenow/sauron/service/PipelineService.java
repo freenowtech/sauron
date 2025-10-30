@@ -139,12 +139,11 @@ public class PipelineService
                 log.debug("Applying pluginId: {}. Processing service {} - {}. DataSet BEFORE plugin execution: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(),
                     dataSet);
 
-                final DataSet dataSetForLambda = dataSet;
-                dataSet = getTimerBuilder("sauron.plugin.execution.time")
+                getTimerBuilder("sauron.plugin.execution.time")
                     .tag("plugin", plugin)
                     .tag("service", dataSet.getServiceName())
                     .tag("commit", dataSet.getCommitId())
-                    .register(meterRegistry).record(() -> pluginExtension.apply(pluginsProperties, dataSetForLambda));
+                    .register(meterRegistry).record(() -> pluginExtension.apply(pluginsProperties, dataSet));
 
                 meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "success").increment();
                 log.debug("PluginId: {} applied. Processing service {} - {}. DataSet AFTER plugin execution: {}", plugin, dataSet.getServiceName(), dataSet.getCommitId(), dataSet);
