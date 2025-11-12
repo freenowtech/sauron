@@ -1,10 +1,10 @@
 package com.freenow.sauron.plugins;
 
 import com.freenow.sauron.model.DataSet;
+import com.freenow.sauron.plugins.readers.KubernetesContainersReader;
 import com.freenow.sauron.plugins.readers.KubernetesEnvironmentVariablesReader;
 import com.freenow.sauron.plugins.readers.KubernetesLabelAnnotationReader;
 import com.freenow.sauron.plugins.readers.KubernetesPropertiesFilesReader;
-import com.freenow.sauron.plugins.readers.KubernetesContainersReader;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import java.util.Map;
 import lombok.NoArgsConstructor;
@@ -22,7 +22,7 @@ public class KubernetesApiReport implements SauronExtension
     static final String SELECTORS_PROPERTY = "selectors";
     static final String ENV_VARS_PROPERTY = "environmentVariablesCheck";
     static final String PROPERTIES_FILES_CHECK = "propertiesFilesCheck";
-    static final String CONTAINERS_CHECK = "containersCheck";
+    static final String CONTAINER_HEALTH_CHECK = "containerHealthCheck";
     static final String KUBE_CONFIG_FILE_PROPERTY = "kubeConfigFile";
 
     private APIClientFactory apiClientFactory = new APIClientFactory();
@@ -65,13 +65,12 @@ public class KubernetesApiReport implements SauronExtension
 
             properties.getPluginConfigurationProperty(PLUGIN_ID, PROPERTIES_FILES_CHECK).filter(Map.class::isInstance)
                 .map(Map.class::cast)
-                .map(Map.class::cast)
                 .ifPresent(propFilesCheck -> kubernetesPropertiesFilesReader.read(input, serviceLabel, propFilesCheck, apiClient));
 
-            properties.getPluginConfigurationProperty(PLUGIN_ID, CONTAINERS_CHECK).filter(Map.class::isInstance)
+            properties.getPluginConfigurationProperty(PLUGIN_ID, CONTAINER_HEALTH_CHECK).filter(Map.class::isInstance)
                 .map(Map.class::cast)
                 .map(Map::values)
-                .ifPresent(containersCheck -> kubernetesContainersReader.read(input, serviceLabel, containersCheck, apiClient));
+                .ifPresent(containerHealthCheck -> kubernetesContainersReader.read(input, serviceLabel, containerHealthCheck, apiClient));
         });
         return input;
     }

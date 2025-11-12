@@ -40,7 +40,8 @@ sauron.plugins:
         "THE_OUTPUT_KEY": "the.prop.key.in.the.file"
       "[/path/to/file_b.env]":
         "ANOTHER_OUTPUT_KEY": "the.prop.key.in.the.file"
-    containersCheck:
+    # Verify that each Kubernetes container has a valid health check path defined for at least one of the specified probes.
+    containerHealthCheck:
       - liveness
       - readiness
 ```
@@ -57,3 +58,5 @@ The possible selectors can be found in
 - All the selector's value that can be found assigned to the specified resources
 - All the environment variables and its values that were found in the running pod
 - All the values found in the property files for the running pod
+- All the checks performed for the container health check probes
+- The `healthCheckPath` as `true` if any of the verified probes has a valid health check path defined
