@@ -4,7 +4,7 @@ ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=80"
 
 ENV PYTHON_VERSION="3.11.4"
 
-ENV NODE_VERSION="18"
+ENV NODE_VERSION="24"
 
 LABEL maintainer="upscaler@free-now.com"
 
