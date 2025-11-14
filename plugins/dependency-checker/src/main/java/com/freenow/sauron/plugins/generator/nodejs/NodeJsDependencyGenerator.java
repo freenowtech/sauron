@@ -110,7 +110,6 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
             .outputFile(bomJson)
             .build()
             .run();
-
         return bomJson;
     }
 
