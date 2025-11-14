@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -110,6 +111,33 @@ public class NodeJsDependencyGenerator extends DependencyGenerator
             .outputFile(bomJson)
             .build()
             .run();
+
+        /*
+         * The npm sbom command can generate a BOM with an invalid serialNumber (e.g., containing '***').
+         * This fails validation in DependencyTrack, which expects a valid UUID matching the pattern:
+         * ^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+         *
+         * See DependencyTrack's validator:
+         * https://github.com/DependencyTrack/dependency-track/blob/master/src/main/java/org/dependencytrack/parser/cyclonedx/CycloneDxValidator.java
+         *
+         * To prevent validation failure, this code replaces the invalid part of the serialNumber
+         * with a valid, randomly generated UUID.
+         */
+
+        try (Stream<String> lines = Files.lines(bomJson))
+        {
+            String content = lines
+                .map(line -> {
+                    if (line.trim().startsWith("\"serialNumber\":") && line.contains("***")) {
+                        log.debug("Found invalid serialNumber in bom.json for project at {}. Replacing it with a valid UUID.", repositoryPath);
+                        return line.replace("***", UUID.randomUUID().toString());
+                    }
+                    return line;
+                })
+                .collect(Collectors.joining(System.lineSeparator()));
+            Files.write(bomJson, content.getBytes());
+        }
+
         return bomJson;
     }
 
