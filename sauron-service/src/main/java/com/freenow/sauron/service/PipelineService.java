@@ -141,7 +141,6 @@ public class PipelineService
 
                 getTimerBuilder("sauron.plugin.execution.time")
                     .tag("plugin", plugin)
-                    .tag("service", dataSet.getServiceName())
                     .register(meterRegistry).record(() -> pluginExtension.apply(pluginsProperties, dataSet));
 
                 meterRegistry.counter("sauron.plugin.executions.total", "plugin", plugin, "result", "success").increment();
