@@ -3,6 +3,7 @@ package com.freenow.sauron.plugins;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.util.regex.Pattern;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -219,6 +220,48 @@ public class DependencyCheckerTest
                     "}"
             ))
         );
+    }
+
+    @Test
+    public void testSerialNumberSanitization() throws IOException, URISyntaxException
+    {
+        // Test with invalid serial number
+        DataSet dataSet = createDataSet(Map.of(
+            "package.json", "package.json",
+            "package-lock.json", "package-lock.json"
+        ));
+        String invalidBomContent = "{\n" +
+            "  \"bomFormat\": \"CycloneDX\",\n" +
+            "  \"specVersion\": \"1.4\",\n" +
+            "  \"serialNumber\": \"urn:uuid:***\",\n" +
+            "  \"version\": 1,\n" +
+            "  \"components\": []\n" +
+            "}";
+        Path bomJson = tempFolder.getRoot().toPath().resolve("bom.json");
+        Files.write(bomJson, invalidBomContent.getBytes());
+        dataSet.setAdditionalInformation("cycloneDxBomPath", bomJson.toString());
+
+        plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
+
+        String sanitizedBomContent = new String(Files.readAllBytes(bomJson));
+        assertFalse(sanitizedBomContent.contains("***"));
+        assertTrue(Pattern.compile("\"serialNumber\": \"urn:uuid:[a-f0-9\\-]{36}\"").matcher(sanitizedBomContent).find());
+
+        // Test with valid serial number which should be kept unchanged
+        String validBomContent = "{\n" +
+            "  \"bomFormat\": \"CycloneDX\",\n" +
+            "  \"specVersion\": \"1.4\",\n" +
+            "  \"serialNumber\": \"urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79\",\n" +
+            "  \"version\": 1,\n" +
+            "  \"components\": []\n" +
+            "}";
+        Files.write(bomJson, validBomContent.getBytes());
+        dataSet.setAdditionalInformation("cycloneDxBomPath", bomJson.toString());
+
+        plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
+
+        String finalBomContent = new String(Files.readAllBytes(bomJson));
+        assertTrue(finalBomContent.contains("urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79"));
     }
 
 

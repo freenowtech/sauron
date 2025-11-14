@@ -90,8 +90,8 @@ public class DependencyChecker implements SauronExtension
 
     private List<Component> parseCycloneDxJson(Path bom) throws IOException
     {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode bomNode = objectMapper.readTree(bom.toFile());
+        ObjectMapper oMapper = new ObjectMapper();
+        JsonNode bomNode = oMapper.readTree(bom.toFile());
 
         /*
          * The npm BOM generator may produce an invalid serialNumber, which can cause validation issues in DependencyTrack.
@@ -106,7 +106,8 @@ public class DependencyChecker implements SauronExtension
             ((ObjectNode) bomNode).put("serialNumber", "urn:uuid:" + UUID.randomUUID());
         }
 
-        Bom bomObject = objectMapper.treeToValue(bomNode, Bom.class);
+        Bom bomObject = oMapper.treeToValue(bomNode, Bom.class);
+
         return Optional.ofNullable(bomObject.getComponents()).orElse(Collections.emptyList());
     }
 }
