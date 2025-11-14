@@ -1,7 +1,9 @@
 package com.freenow.sauron.plugins;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.freenow.sauron.model.DataSet;
@@ -21,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Extension
 @Slf4j
@@ -87,8 +90,23 @@ public class DependencyChecker implements SauronExtension
 
     private List<Component> parseCycloneDxJson(Path bom) throws IOException
     {
-        ObjectMapper oMapper = new ObjectMapper();
-        var bomContent = oMapper.readValue(bom.toFile(), Bom.class);
-        return Optional.ofNullable(bomContent.getComponents()).orElse(Collections.emptyList());
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode bomNode = objectMapper.readTree(bom.toFile());
+
+        /*
+         * The npm BOM generator may produce an invalid serialNumber, which can cause validation issues in DependencyTrack.
+         * https://github.com/DependencyTrack/dependency-track/blob/fa1eb0bb4c1ecf87d231a21e077055acb6b8b59d/src/main/java/org/dependencytrack/parser/cyclonedx/CycloneDxValidator.java#L90
+         * which returns error like this
+         * {"status":400,"title":"The uploaded BOM is invalid","detail":"Schema validation failed","errors":["$.serialNumber: does not match the regex pattern ^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"]}
+         * This code replaces the invalid serialNumber with a valid v4 UUID to ensure compatibility.
+         */
+        if (bomNode.has("serialNumber") && bomNode.get("serialNumber").asText().contains("***"))
+        {
+            log.debug("Replacing invalid serialNumber in {} for project: {}", bom.getFileName(), bom.getParent());
+            ((ObjectNode) bomNode).put("serialNumber", "urn:uuid:" + UUID.randomUUID());
+        }
+
+        Bom bomObject = objectMapper.treeToValue(bomNode, Bom.class);
+        return Optional.ofNullable(bomObject.getComponents()).orElse(Collections.emptyList());
     }
 }
