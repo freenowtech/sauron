@@ -104,6 +104,7 @@ public class DependencyChecker implements SauronExtension
         {
             log.debug("Replacing invalid serialNumber in {} for project: {}", bom.getFileName(), bom.getParent());
             ((ObjectNode) bomNode).put("serialNumber", "urn:uuid:" + UUID.randomUUID());
+            oMapper.writeValue(bom.toFile(), bomNode);
         }
 
         Bom bomObject = oMapper.treeToValue(bomNode, Bom.class);
