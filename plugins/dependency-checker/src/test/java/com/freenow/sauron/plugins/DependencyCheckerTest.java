@@ -3,6 +3,10 @@ package com.freenow.sauron.plugins;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import org.cyclonedx.model.Component;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -220,8 +225,7 @@ public class DependencyCheckerTest
             ))
         );
     }
-
-
+    
     @Test
     public void testDependencyCheckerNodeJsYarnNotSupported() throws IOException, URISyntaxException
     {
@@ -439,5 +443,103 @@ public class DependencyCheckerTest
         );
 
         return properties;
+    }
+
+    @Test
+    public void testParseCycloneDxJsonWithInvalidSerialNumber() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    {
+        // Given
+        String invalidBomContent = "{\n" +
+            "  \"bomFormat\": \"CycloneDX\",\n" +
+            "  \"specVersion\": \"1.4\",\n" +
+            "  \"serialNumber\": \"urn:uuid:***\",\n" +
+            "  \"version\": 1,\n" +
+            "  \"components\": [\n" +
+            "    {\n" +
+            "      \"type\": \"library\",\n" +
+            "      \"name\": \"react\",\n" +
+            "      \"version\": \"18.2.0\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+        Path bomJson = tempFolder.getRoot().toPath().resolve("bom.json");
+        Files.write(bomJson, invalidBomContent.getBytes(StandardCharsets.UTF_8));
+
+        // When
+        List<Component> components = invokeParseCycloneDxJson(plugin, bomJson);
+
+        // Then
+        assertNotNull(components);
+        assertEquals(1, components.size());
+        assertEquals("react", components.get(0).getName());
+        assertEquals("18.2.0", components.get(0).getVersion());
+
+        String sanitizedBomContent = new String(Files.readAllBytes(bomJson), StandardCharsets.UTF_8);
+        assertFalse("The serialNumber should have been sanitized", sanitizedBomContent.contains("***"));
+    }
+
+    @Test
+    public void testParseCycloneDxJsonWithValidBom() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    {
+        // Given
+        String validBomContent = "{\n" +
+            "  \"bomFormat\": \"CycloneDX\",\n" +
+            "  \"specVersion\": \"1.4\",\n" +
+            "  \"serialNumber\": \"urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79\",\n" +
+            "  \"version\": 1,\n" +
+            "  \"components\": [\n" +
+            "    {\n" +
+            "      \"type\": \"library\",\n" +
+            "      \"name\": \"express\",\n" +
+            "      \"version\": \"4.18.2\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+        Path bomJson = tempFolder.getRoot().toPath().resolve("bom.json");
+        Files.write(bomJson, validBomContent.getBytes(StandardCharsets.UTF_8));
+
+        // When
+        List<Component> components = invokeParseCycloneDxJson(plugin, bomJson);
+
+        // Then
+        assertNotNull(components);
+        assertEquals(1, components.size());
+        assertEquals("express", components.get(0).getName());
+        assertEquals("4.18.2", components.get(0).getVersion());
+
+        String bomContent = new String(Files.readAllBytes(bomJson), StandardCharsets.UTF_8);
+        assertEquals("The BOM file should not be modified", validBomContent, bomContent);
+    }
+
+    @Test
+    public void testParseCycloneDxJsonWithNoComponents() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    {
+        // Given
+        String bomWithNoComponents = "{\n" +
+            "  \"bomFormat\": \"CycloneDX\",\n" +
+            "  \"specVersion\": \"1.4\",\n" +
+            "  \"serialNumber\": \"urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79\",\n" +
+            "  \"version\": 1,\n" +
+            "  \"components\": []\n" +
+            "}";
+
+        Path bomJson = tempFolder.getRoot().toPath().resolve("bom.json");
+        Files.write(bomJson, bomWithNoComponents.getBytes(StandardCharsets.UTF_8));
+
+        // When
+        List<Component> components = invokeParseCycloneDxJson(plugin, bomJson);
+
+        // Then
+        assertNotNull(components);
+        assertTrue(components.isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Component> invokeParseCycloneDxJson(DependencyChecker plugin, Path bom) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method method = DependencyChecker.class.getDeclaredMethod("parseCycloneDxJson", Path.class);
+        method.setAccessible(true);
+        return (List<Component>) method.invoke(plugin, bom);
     }
 }
