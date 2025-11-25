@@ -26,10 +26,10 @@ public class KubernetesGetDeploymentSpecCommand
 
     public Optional<V1DeploymentSpec> getDeploymentSpec(String serviceLabel, KubernetesResources resource, String service, ApiClient client)
     {
+        String labelSelector = String.format("%s=%s", serviceLabel, service);
         try
         {
-            String labelSelector = String.format("%s=%s", serviceLabel, service);
-            log.debug("Filtering deployment {} using selector {}", resource, labelSelector);
+            log.debug("Filtering resource {} using selector {}", resource, labelSelector);
             var deployments = createAppsV1Api(client).listNamespacedDeployment(
                     K8S_DEFAULT_NAMESPACE,
                     K8S_PRETTY_OUTPUT,
@@ -65,9 +65,10 @@ public class KubernetesGetDeploymentSpecCommand
         }
         catch (ApiException ex)
         {
-            log.error(ex.getMessage(), ex);
+            log.error("getDeploymentSpec failed '{}'", ex.getMessage(), ex);
         }
 
+        log.warn("No deployment returned for service '{}' using selector {}", service, labelSelector);
         return Optional.empty();
     }
 }
