@@ -1,6 +1,7 @@
 package com.freenow.sauron.plugins.generator;
 
 import com.freenow.sauron.plugins.ProjectType;
+import com.freenow.sauron.plugins.generator.go.GoDependencyGenerator;
 import com.freenow.sauron.plugins.generator.gradle.GradleGroovyDependencyGenerator;
 import com.freenow.sauron.plugins.generator.gradle.GradleKotlinDslDependencyGenerator;
 import com.freenow.sauron.plugins.generator.maven.MavenDependencyGenerator;
@@ -31,6 +32,8 @@ public class DependencyGeneratorFactory
                 return Optional.of(new PythonRequirementsDependencyGenerator(properties));
             case PYTHON_POETRY:
                 return Optional.of(new PythonPoetryDependencyGenerator(properties));
+            case GO:
+                return Optional.of(new GoDependencyGenerator(properties));
             case SBT:
                 //TODO: Implement SbtGenerator
                 break;

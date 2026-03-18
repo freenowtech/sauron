@@ -1,3 +1,2 @@
 #!/usr/bin/env bash
-
-docker run --rm -v $PWD:/wrk -w /wrk node:18.20.8 npm "$@"
+docker run --rm -v "$(pwd)":/wrk -w /wrk sauron-tooling:latest npm "$@"

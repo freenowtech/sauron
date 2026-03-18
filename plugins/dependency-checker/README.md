@@ -2,60 +2,79 @@
 
 ### Description
 
-This plugin will checkout the code for the commitId provided in build, and generate all dependencies for that specific
-project. The output will be a a list of objects that describes the dependencies.The output format follows the standard
-[CycloneDX](https://cyclonedx.org/#specification-overview).
+This plugin analyzes the source code at a given path and generates a comprehensive list of dependencies. The output follows the [CycloneDX](https://cyclonedx.org/) standard.
 
 ### Configuration
 
-This plugin does not need a configuration.
+This plugin does not require mandatory configuration, but specific tool paths can be overridden via `PluginsConfigurationProperties`.
 
 ### Input
 
-- sanitizedServiceName: Sanitized service name that is being built.
-
-- repositoryPath: Path to the source code project.
+- `sanitizedServiceName`: Sanitized service name of the project.
+- `repositoryPath`: Absolute path to the project's source code.
 
 ### Output
 
-- cycloneDxBomPath: Path to the cycloneDx `bom.xml` or `bom.json`
-
-- projectType: Project type. Possible values:
+- `cycloneDxBomPath`: Path to the generated `bom.xml` (XML) or `bom.json` (JSON).
+- `projectType`: Detected project type. Supported types:
    - `MAVEN`
    - `GRADLE_GROOVY`
    - `GRADLE_KOTLIN_DSL`
    - `NODEJS`
-   - `UNKNONW`
+   - `PYTHON_REQUIREMENTS`
+   - `PYTHON_POETRY`
+   - `GO`
+   - `SBT`
+   - `CLOJURE`
+   - `UNKNOWN`
 
-- dependency key/value list: This plugin outputs all dependencies as a key and its version as a value.
-This is done to achieve the use case where we need to filter the documents by the version of a specific
-dependency. The list of dependencies is stored in a different index pattern `dependencies-YYYY` for 
-performance improvement.
-
-*Note*: Dependencies with `.` in artifact id, will have this character replaced by `_` to avoid mapping conflicts
-in Elasticsearch. See this [issue](https://github.com/elastic/kibana/issues/3540#issuecomment-219808228) for more details.
-
+- **Dependency List**: All detected dependencies are output as key-value pairs (Artifact -> Version).
+  - To avoid Elasticsearch mapping conflicts, dots (`.`) in artifact IDs are replaced with underscores (`_`).
+  - Data is indexed into `dependencies-YYYY` for optimized querying.
 
 ### Running locally
 
-This plugin requires the below dependencies to be executed locally:
-* Python
+This plugin is designed to run in a standalone manner using containerized tools. **No local installation of Python, Node.js, Go, or SBOM tools is required** if you have Docker installed.
+
+#### Docker Image
+A pre-configured Docker image providing all necessary runtimes and tools is available. This image is shared with `sauron-service` to ensure consistency.   
+Build it using:
+
 ```bash
-brew install python@3.11.4 
-``` 
-* pipx - Install and Run Python Applications in Isolated Environments
+docker build -f ../../sauron-service/Dockerfile --target sauron-tooling -t sauron-tooling:latest ../../sauron-service
+```
+
+Once built, the plugin will automatically use this image to execute analysis for `Go`, `NodeJS`, and `Python` projects via the wrapper scripts located in `src/test/resources/bin`.
+
+#### Manual Local Setup (Optional)
+If you prefer not to use Docker, you can install the dependencies manually:
+
+##### 1. Go Projects ([Syft](https://github.com/anchore/syft))
 ```bash
+brew tap anchore/syft
+brew install syft
+```
+
+##### 2. Node.js Projects (NPM)
+Requires `npm` (version 9+ recommended for `npm sbom` support).
+
+##### 3. Python Projects
+Requires Python 3.11+ and the following tools:
+
+* **Python & pipx**
+```bash
+brew install python@3.11 
 brew install pipx
 pipx ensurepath
 ```
 
-* Poetry and Poetry Export Plugin
+* **Poetry & Export Plugin**
 ```bash
 pipx install poetry
 pipx inject poetry poetry-plugin-export
 ```
 
-* CycloneDX Python SBOM Generation Tool
+* **CycloneDX Python**
 ```bash
 pipx install cyclonedx-bom
 ```

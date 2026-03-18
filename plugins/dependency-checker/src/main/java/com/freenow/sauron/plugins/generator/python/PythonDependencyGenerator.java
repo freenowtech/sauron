@@ -13,11 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class PythonDependencyGenerator extends DependencyGenerator
 {
 
-    protected static final String PYTHON_VIRTUAL_ENV_CREATE = "python -m venv .";
-    protected static final String PYTHON_VIRTUAL_ENV_ACTIVATE = "source bin/activate";
-    protected static final String CYCLONE_DX_GENERATE_BOM = "cyclonedx-py requirements requirements.freeze --of XML -o bom.xml";
-    protected static final String PYTHON_VIRTUAL_ENV_DEACTIVATE = "deactivate";
     protected String python = "python";
+    protected String poetry = "poetry";
+    protected String cyclonedxPy = "cyclonedx-py";
 
 
     protected PythonDependencyGenerator(PluginsConfigurationProperties properties)
@@ -30,6 +28,8 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
                 {
                     Map<String, Object> config = (Map<String, Object>) pythonConfig;
                     this.python = (String) config.getOrDefault("path", python);
+                    this.poetry = (String) config.getOrDefault("poetry", poetry);
+                    this.cyclonedxPy = (String) config.getOrDefault("cyclonedx-py", cyclonedxPy);
                 }
                 else
                 {
@@ -66,4 +66,20 @@ public abstract class PythonDependencyGenerator extends DependencyGenerator
 
     protected abstract void generateRequirementsFreeze(Path repositoryPath) throws IOException, InterruptedException, NonZeroExitCodeException;
 
+    protected String getVenvCreateCommand()
+    {
+        return python + " -m venv .";
+    }
+
+
+    protected String getVenvActivateCommand()
+    {
+        return "source bin/activate";
+    }
+
+
+    protected String getVenvDeactivateCommand()
+    {
+        return "deactivate";
+    }
 }

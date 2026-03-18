@@ -97,13 +97,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <version>2.20.0</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-invoker</artifactId>
             <version>3.1.0</version>
@@ -302,6 +295,38 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                     <stagingProgressTimeoutMinutes>60</stagingProgressTimeoutMinutes>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <execution>
+                        <id>build-test-docker-image</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <!-- Dockerfile location -->
+                                <argument>-f</argument>
+                                <argument>../../sauron-service/Dockerfile</argument>
+                                <!-- image stage -->
+                                <argument>--target</argument>
+                                <argument>sauron-tooling</argument>
+                                <!-- image tag -->
+                                <argument>-t</argument>
+                                <argument>sauron-tooling:latest</argument>
+                                <!-- build context -->
+                                <argument>../../sauron-service</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

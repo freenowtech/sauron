@@ -25,24 +25,30 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Extension
 @Slf4j
+@Extension
 public class DependencyChecker implements SauronExtension
 {
-
     @Override
     public DataSet apply(PluginsConfigurationProperties properties, DataSet input)
     {
         input.getStringAdditionalInformation("repositoryPath").map(Paths::get).ifPresent(repository ->
         {
             ProjectType projectType = ProjectType.fromPath(repository);
+            log.info("Detected project type: {} for repository: {}", projectType, repository);
             input.setAdditionalInformation("projectType", projectType.toString());
 
             DependencyGeneratorFactory.newInstance(projectType, properties)
-                .map(dependencyGenerator -> dependencyGenerator.generateCycloneDxBom(repository))
+                .map(dependencyGenerator ->
+                {
+                    Path bom = dependencyGenerator.generateCycloneDxBom(repository);
+                    log.info("Generated BOM path: {}", bom);
+                    return bom;
+                })
                 .filter(Files::exists)
                 .ifPresent(bom ->
                 {
+                    log.info("BOM exists, setting cycloneDxBomPath: {}", bom);
                     input.setAdditionalInformation("cycloneDxBomPath", bom.toString());
                     DependenciesModel dependenciesModel = DependenciesModel.from(input, parseCycloneDx(bom));
                     new ElasticSearchClient(properties).index(dependenciesModel);
