@@ -2,6 +2,16 @@ package com.freenow.sauron.plugins;
 
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
+import org.apache.commons.io.FileUtils;
+import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.parsers.XmlParser;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -17,22 +27,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.io.FileUtils;
-import org.cyclonedx.exception.ParseException;
-import org.cyclonedx.model.Bom;
-import org.cyclonedx.model.Component;
-import org.cyclonedx.parsers.XmlParser;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static com.freenow.sauron.plugins.ProjectType.CLOJURE;
 import static com.freenow.sauron.plugins.ProjectType.GO;
 import static com.freenow.sauron.plugins.ProjectType.GRADLE_GROOVY;
 import static com.freenow.sauron.plugins.ProjectType.GRADLE_KOTLIN_DSL;
 import static com.freenow.sauron.plugins.ProjectType.MAVEN;
-import static com.freenow.sauron.plugins.ProjectType.NODEJS;
+import static com.freenow.sauron.plugins.ProjectType.NODEJS_NPM;
+import static com.freenow.sauron.plugins.ProjectType.NODEJS_YARN;
 import static com.freenow.sauron.plugins.ProjectType.PYTHON_POETRY;
 import static com.freenow.sauron.plugins.ProjectType.PYTHON_REQUIREMENTS;
 import static com.freenow.sauron.plugins.ProjectType.SBT;
@@ -152,7 +154,7 @@ public class DependencyCheckerTest
 
 
     @Test
-    public void testDependencyCheckerNodeJs() throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    public void testDependencyCheckerNodeJsNpm() throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
     {
         DataSet dataSet = createDataSet(Map.of(
             "package.json", "package.json",
@@ -160,7 +162,7 @@ public class DependencyCheckerTest
         ));
 
         dataSet = plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
-        checkKeyPresent(dataSet, "projectType", NODEJS.toString());
+        checkKeyPresent(dataSet, "projectType", NODEJS_NPM.toString());
 
         Path bomJsonPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
         assertTrue("BOM file should exist at " + bomJsonPath, Files.exists(bomJsonPath));
@@ -170,14 +172,26 @@ public class DependencyCheckerTest
 
 
     @Test
-    public void testDependencyCheckerNodeJsYarnNotSupported() throws IOException, URISyntaxException
+    public void testDependencyCheckerNodeJsYarn() throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
     {
         DataSet dataSet = createDataSet(Map.of(
             "package.json", "package.json",
             "yarn.lock", "yarn.lock"
         ));
         dataSet = plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
-        checkKeyNotPresent(dataSet, "cycloneDxBomPath");
+        checkKeyPresent(dataSet, "projectType", NODEJS_YARN.toString());
+
+        Path bomJsonPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
+        assertTrue("BOM file should exist at " + bomJsonPath, Files.exists(bomJsonPath));
+        Map<String, String> dependencies = Map.of(
+            "react", "18.0.0",
+            "loose-envify", "1.4.0",
+            "js-tokens", "4.0.0"
+        );
+        for (Map.Entry<String, String> dependency : dependencies.entrySet()) {
+            assertTrue(dependency.getKey() + "@" + dependency.getValue() + " should be present in bom.json", hasJsonDependency(bomJsonPath, dependency.getKey(), dependency.getValue()));
+        }
+        assertEquals("BOM should contain 1 library component (react)", dependencies.size(), invokeParseCycloneDxJson(plugin, bomJsonPath).size());
     }
 
 
@@ -519,7 +533,8 @@ public class DependencyCheckerTest
         {
             properties.get("dependency-checker").put(
                 "nodejs", Map.of(
-                    "npm", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/npm"), "Resource 'bin/npm' not found").toURI()).toString()
+                    "npm", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/npm"), "Resource 'bin/npm' not found").toURI()).toString(),
+                    "corepack", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/corepack"), "Resource 'bin/corepack' not found").toURI()).toString()
                 )
             );
         }

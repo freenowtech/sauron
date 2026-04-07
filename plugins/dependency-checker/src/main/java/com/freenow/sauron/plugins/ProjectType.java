@@ -14,7 +14,8 @@ public enum ProjectType
     MAVEN,
     GRADLE_GROOVY,
     GRADLE_KOTLIN_DSL,
-    NODEJS,
+    NODEJS_NPM,
+    NODEJS_YARN,
     PYTHON_REQUIREMENTS,
     PYTHON_POETRY,
     SBT,
@@ -37,9 +38,13 @@ public enum ProjectType
         {
             return GRADLE_KOTLIN_DSL;
         }
-        if (Files.exists(repositoryPath.resolve("package.json")))
+        if (Files.exists(repositoryPath.resolve("package.json")) && Files.exists(repositoryPath.resolve("package-lock.json")))
         {
-            return NODEJS;
+            return NODEJS_NPM;
+        }
+        if (Files.exists(repositoryPath.resolve("package.json")) && Files.exists(repositoryPath.resolve("yarn.lock")))
+        {
+            return NODEJS_YARN;
         }
         if (Files.exists(repositoryPath.resolve("pyproject.toml")))
         {
@@ -67,7 +72,8 @@ public enum ProjectType
 
     public boolean hasNullGroup()
     {
-        return this.equals(ProjectType.NODEJS) ||
+        return this.equals(ProjectType.NODEJS_NPM) ||
+            this.equals(ProjectType.NODEJS_YARN) ||
             this.equals(ProjectType.PYTHON_POETRY) ||
             this.equals(ProjectType.PYTHON_REQUIREMENTS) ||
             this.equals(ProjectType.GO);
@@ -78,7 +84,8 @@ public enum ProjectType
     {
         switch (this)
         {
-            case NODEJS:
+            case NODEJS_NPM:
+            case NODEJS_YARN:
                 return "org.npmjs";
             case PYTHON_REQUIREMENTS:
             case PYTHON_POETRY:

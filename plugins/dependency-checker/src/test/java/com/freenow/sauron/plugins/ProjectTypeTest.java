@@ -39,10 +39,19 @@ public class ProjectTypeTest
     }
 
     @Test
-    public void testFromPathNodeJs() throws IOException
+    public void testFromPathNodeJsNpm() throws IOException
     {
         tempFolder.newFile("package.json");
-        assertEquals(ProjectType.NODEJS, ProjectType.fromPath(tempFolder.getRoot().toPath()));
+        tempFolder.newFile("package-lock.json");
+        assertEquals(ProjectType.NODEJS_NPM, ProjectType.fromPath(tempFolder.getRoot().toPath()));
+    }
+
+    @Test
+    public void testFromPathNodeJsYarn() throws IOException
+    {
+        tempFolder.newFile("package.json");
+        tempFolder.newFile("yarn.lock");
+        assertEquals(ProjectType.NODEJS_YARN, ProjectType.fromPath(tempFolder.getRoot().toPath()));
     }
 
     @Test
@@ -99,7 +108,8 @@ public class ProjectTypeTest
     @Test
     public void testHasNullGroup()
     {
-        assertTrue(ProjectType.NODEJS.hasNullGroup());
+        assertTrue(ProjectType.NODEJS_NPM.hasNullGroup());
+        assertTrue(ProjectType.NODEJS_YARN.hasNullGroup());
         assertTrue(ProjectType.PYTHON_POETRY.hasNullGroup());
         assertTrue(ProjectType.PYTHON_REQUIREMENTS.hasNullGroup());
         assertTrue(ProjectType.GO.hasNullGroup());
@@ -115,7 +125,8 @@ public class ProjectTypeTest
     @Test
     public void testDefaultGroup()
     {
-        assertEquals("org.npmjs", ProjectType.NODEJS.defaultGroup());
+        assertEquals("org.npmjs", ProjectType.NODEJS_NPM.defaultGroup());
+        assertEquals("org.npmjs", ProjectType.NODEJS_YARN.defaultGroup());
         assertEquals("org.python", ProjectType.PYTHON_POETRY.defaultGroup());
         assertEquals("org.python", ProjectType.PYTHON_REQUIREMENTS.defaultGroup());
         assertEquals("org.golang", ProjectType.GO.defaultGroup());
