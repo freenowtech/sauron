@@ -518,9 +518,8 @@ public class DependencyCheckerTest
         try
         {
             properties.get("dependency-checker").put(
-                "npm", Map.of(
-                    "nodejs",
-                    Paths.get(Objects.requireNonNull(classLoader.getResource("bin/npm"), "Resource 'bin/npm' not found").toURI()).toString()
+                "nodejs", Map.of(
+                    "npm", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/npm"), "Resource 'bin/npm' not found").toURI()).toString()
                 )
             );
         }
@@ -540,20 +539,10 @@ public class DependencyCheckerTest
         try
         {
             properties.get("dependency-checker").put(
-                "path", Map.of(
-                    "path", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/python"), "Resource 'bin/python' not found").toURI()).toString()
-                )
-            );
-            properties.get("dependency-checker").put(
-                "poetry", Map.of(
-                    "poetry",
-                    Paths.get(Objects.requireNonNull(classLoader.getResource("bin/poetry"), "Resource 'bin/poetry' not found").toURI()).toString()
-                )
-            );
-            properties.get("dependency-checker").put(
-                "cyclonedx-py", Map.of(
-                    "cyclonedx-py",
-                    Paths.get(Objects.requireNonNull(classLoader.getResource("bin/cyclonedx-py"), "Resource 'bin/cyclonedx-py' not found").toURI()).toString()
+                "python", Map.of(
+                    "path", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/python"), "Resource 'bin/python' not found").toURI()).toString(),
+                    "poetry", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/poetry"), "Resource 'bin/poetry' not found").toURI()).toString(),
+                    "cyclonedx-py", Paths.get(Objects.requireNonNull(classLoader.getResource("bin/cyclonedx-py"), "Resource 'bin/cyclonedx-py' not found").toURI()).toString()
                 )
             );
         }
