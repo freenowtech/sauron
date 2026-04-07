@@ -309,6 +309,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${skipTests}</skip>
                             <executable>docker</executable>
                             <arguments>
                                 <argument>build</argument>
