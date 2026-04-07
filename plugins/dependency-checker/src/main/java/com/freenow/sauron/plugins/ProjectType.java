@@ -1,7 +1,13 @@
 package com.freenow.sauron.plugins;
 
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Optional;
+import java.util.Set;
 
 public enum ProjectType
 {
@@ -51,18 +57,20 @@ public enum ProjectType
         {
             return CLOJURE;
         }
-        if (Files.exists(repositoryPath.resolve("go.mod")))
+        if (hasGoMod(repositoryPath))
         {
             return GO;
         }
-
         return UNKNOWN;
     }
 
 
     public boolean hasNullGroup()
     {
-        return this.equals(ProjectType.NODEJS) || this.equals(ProjectType.PYTHON_POETRY) || this.equals(ProjectType.PYTHON_REQUIREMENTS);
+        return this.equals(ProjectType.NODEJS) ||
+            this.equals(ProjectType.PYTHON_POETRY) ||
+            this.equals(ProjectType.PYTHON_REQUIREMENTS) ||
+            this.equals(ProjectType.GO);
     }
 
 
@@ -75,8 +83,60 @@ public enum ProjectType
             case PYTHON_REQUIREMENTS:
             case PYTHON_POETRY:
                 return "org.python";
+            case GO:
+                return "org.golang";
             default:
                 return "";
         }
+    }
+
+
+    private static boolean hasGoMod(Path repositoryPath)
+    {
+        return findGoMod(repositoryPath).isPresent();
+    }
+
+
+    public static Optional<Path> findGoMod(Path root)
+    {
+        if (Files.exists(root.resolve("go.mod")))
+        {
+            return Optional.of(root);
+        }
+
+        Set<String> excluded = Set.of(".git", "vendor", "kustomize");
+        Path[] result = new Path[1];
+
+        try
+        {
+            Files.walkFileTree(
+                root, new SimpleFileVisitor<>()
+                {
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                    {
+                        return excluded.contains(String.valueOf(dir.getFileName()))
+                            ? FileVisitResult.SKIP_SUBTREE
+                            : FileVisitResult.CONTINUE;
+                    }
+
+
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                    {
+                        if ("go.mod".equals(file.getFileName().toString()))
+                        {
+                            result[0] = file.getParent();
+                            return FileVisitResult.TERMINATE;
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+        }
+        catch (IOException ignored)
+        {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(result[0]);
     }
 }

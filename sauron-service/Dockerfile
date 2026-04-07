@@ -1,113 +1,75 @@
-FROM eclipse-temurin:11-jre
+FROM eclipse-temurin:11-jre AS java-dist
+FROM node:24-slim AS node-dist
+FROM anchore/syft:v1.42.3 AS syft-dist
 
-ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=80"
+# Consolidated Tooling Image with Python, Node, and Syft (SBOM Generator)
+FROM python:3.11-slim AS sauron-tooling
 
-ENV PYTHON_VERSION="3.11.4"
+# Copy Node.js from official image
+COPY --from=node-dist /usr/local/bin /usr/local/bin
+COPY --from=node-dist /usr/local/lib /usr/local/lib
 
-ENV NODE_VERSION="24"
-
-LABEL maintainer="upscaler@free-now.com"
-
-RUN ln -s $(which java) /usr/bin/java
-
-RUN mkdir -p /usr/share/man/man1
+# Copy Syft from official image
+COPY --from=syft-dist /syft /usr/local/bin/syft
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       curl \
       bash \
       procps \
-      maven \
       git \
       ssh \
-      apt-utils \
-      wget \
-      gpg \
-      gcc \
-      libc6-dev \
-      pkg-config \
-      build-essential \
-      libssl-dev \
-      zlib1g-dev \
-      libbz2-dev \
-      libreadline-dev \
-      libsqlite3-dev \
-      libncursesw5-dev \
-      xz-utils \
-      tk-dev \
-      libxml2-dev \
-      libxmlsec1-dev \
-      libffi-dev \
-      liblzma-dev
+      ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Installing NodeJS
-RUN mkdir -p /etc/apt/keyrings && \
-      curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-      | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-      echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" \
-      > /etc/apt/sources.list.d/nodesource.list && \
-      apt-get update && apt-get install -y nodejs --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN python -m pip install --upgrade pip && \
+    python -m pip install --user pipx && \
+    python -m pipx ensurepath && \
+    /root/.local/bin/pipx install poetry==1.8.2 && \
+    /root/.local/bin/pipx inject poetry poetry-plugin-export==1.7.1 && \
+    /root/.local/bin/pipx install cyclonedx-bom==4.1.5 && \
+    ln -s /root/.local/bin/poetry /usr/local/bin/poetry && \
+    ln -s /root/.local/bin/cyclonedx-py /usr/local/bin/cyclonedx-py
 
-# Installing Python
-RUN curl -s https://pyenv.run | bash && eval "$(/root/.pyenv/bin/pyenv init -)" && \
-      /root/.pyenv/bin/pyenv install -v "$PYTHON_VERSION"
+ENV PATH="/usr/local/bin:${PATH}"
 
-RUN update-alternatives --install /usr/bin/python python /root/.pyenv/versions/"$PYTHON_VERSION"/bin/python 10
 
-# Upgrade Pip
-RUN python -m pip install --upgrade pip
+# Final image - Inherits tools and adds Java, Maven, and service configs
+FROM sauron-tooling AS sauron-service
 
-# Installing pipx - https://pipx.pypa.io/stable/
-RUN python -m pip install --user pipx
-RUN python -m pipx ensurepath
+# Copy Java from official image
+COPY --from=java-dist /opt/java/openjdk /opt/java/openjdk
+ENV JAVA_HOME="/opt/java/openjdk"
+RUN ln -s "${JAVA_HOME}/bin/java" /usr/bin/java
 
-# Installing Poetry
-RUN python -m pipx install poetry==1.8.2
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=80"
 
-# Installing Poetry Export Plugin
-RUN python -m pipx inject poetry poetry-plugin-export==1.7.1
+RUN mkdir -p /usr/share/man/man1 && \
+    apt-get update && apt-get install -y --no-install-recommends maven && \
+    rm -rf /var/lib/apt/lists/*
 
-# Installing CycloneDX Python SBOM Generation Tool
-RUN python -m pipx install cyclonedx-bom==4.1.5
-
-# Enabling Poetry to be used without need of full path
- RUN ln -s /root/.local/bin/poetry /usr/local/bin/poetry
-
-# Enabling CycloneDX to be used without need of full path
- RUN ln -s /root/.local/bin/cyclonedx-py /usr/local/bin/cyclonedx-py
+ENV TINI_VERSION v0.19.0
+ARG TARGETARCH
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /usr/bin/tini
+RUN chmod a+x /usr/bin/tini
 
 RUN mkdir /root/.m2
-
 VOLUME /root/.m2
 
 RUN mkdir /root/.gradle
-
 VOLUME /root/.gradle
 
 RUN mkdir /root/.pip
-
 VOLUME /root/.pip
 
 RUN mkdir -p /sauron/plugins
-
 VOLUME /sauron/plugins
 
-ENV TINI_VERSION v0.19.0
-
-# Defined by Docker, see https://docs.docker.com/desktop/extensions-sdk/extensions/multi-arch/#adding-multi-arch-binaries
-ARG TARGETARCH
-
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /usr/bin/tini
-
-RUN chmod a+x /usr/bin/tini
-
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
-
 COPY target/sauron-service.jar /sauron
 
 EXPOSE 8080
-
 WORKDIR /sauron
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-
 CMD ["/usr/local/bin/entrypoint"]

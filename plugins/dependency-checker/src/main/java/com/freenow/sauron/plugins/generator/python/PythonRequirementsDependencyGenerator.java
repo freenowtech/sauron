@@ -14,8 +14,6 @@ import static com.freenow.sauron.plugins.command.Command.AND;
 @Slf4j
 public class PythonRequirementsDependencyGenerator extends PythonDependencyGenerator
 {
-    private static final String CYCLONE_DX_GENERATE_BOM = "cyclonedx-py requirements requirements.txt --of XML -o bom.xml";
-
 
     public PythonRequirementsDependencyGenerator(PluginsConfigurationProperties properties)
     {
@@ -28,16 +26,17 @@ public class PythonRequirementsDependencyGenerator extends PythonDependencyGener
     {
         try
         {
+            String cycloneDxGenerateBom = cyclonedxPy + " requirements requirements.txt --of XML -o bom.xml";
             Command.builder()
                 .commandTimeout(commandTimeoutMinutes)
                 .repositoryPath(repositoryPath)
                 .commandline(
                     List.of(
                         BIN_BASH, BASH_C_OPTION,
-                        PYTHON_VIRTUAL_ENV_CREATE + AND +
-                        PYTHON_VIRTUAL_ENV_ACTIVATE + AND +
-                        CYCLONE_DX_GENERATE_BOM + AND +
-                        PYTHON_VIRTUAL_ENV_DEACTIVATE
+                        getVenvCreateCommand() + AND +
+                        getVenvActivateCommand() + AND +
+                        cycloneDxGenerateBom + AND +
+                        getVenvDeactivateCommand()
                     )
                 )
                 .build()

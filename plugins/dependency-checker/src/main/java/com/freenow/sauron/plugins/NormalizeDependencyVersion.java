@@ -44,15 +44,11 @@ public final class NormalizeDependencyVersion
      */
     public static String toMajorMinorIncremental(String version)
     {
-
         String majorMinorIncremental = "";
-
         try
         {
-
             if (isNotBlank(version))
             {
-
                 String normalizedMajorMinorIncremental = stream(version.split(GROUP_DELIMITER, GROUP_DELIMITER_LIMIT))
                     .limit(GROUP_SIZE)
                     .map(NormalizeDependencyVersion::toVersionGroup)
@@ -65,20 +61,17 @@ public final class NormalizeDependencyVersion
                     majorMinorIncremental = normalizedMajorMinorIncremental;
                 }
             }
-
         }
         catch (Exception exception)
         {
             log.error("Was not possible to normalize version: {} - Exception: {}", version, exception.getMessage(), exception);
         }
-
         return majorMinorIncremental;
     }
 
 
     private static String inThreeGroups(final String normalizedMajorMinorIncremental)
     {
-
         String majorMinorIncremental = normalizedMajorMinorIncremental;
 
         if (isNotBlank((normalizedMajorMinorIncremental)))
@@ -100,7 +93,6 @@ public final class NormalizeDependencyVersion
 
         if (!isDigits(group))
         {
-
             for (int i = 0; i < group.length(); i++)
             {
                 char c = group.charAt(i);
@@ -110,7 +102,6 @@ public final class NormalizeDependencyVersion
                 }
             }
         }
-
         return group;
     }
 }
