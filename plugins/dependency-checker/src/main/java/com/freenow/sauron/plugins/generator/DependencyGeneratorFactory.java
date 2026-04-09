@@ -5,7 +5,8 @@ import com.freenow.sauron.plugins.generator.go.GoDependencyGenerator;
 import com.freenow.sauron.plugins.generator.gradle.GradleGroovyDependencyGenerator;
 import com.freenow.sauron.plugins.generator.gradle.GradleKotlinDslDependencyGenerator;
 import com.freenow.sauron.plugins.generator.maven.MavenDependencyGenerator;
-import com.freenow.sauron.plugins.generator.nodejs.NodeJsDependencyGenerator;
+import com.freenow.sauron.plugins.generator.nodejs.NodeJsNpmDependencyGenerator;
+import com.freenow.sauron.plugins.generator.nodejs.NodeJsYarnDependencyGenerator;
 import com.freenow.sauron.plugins.generator.python.PythonPoetryDependencyGenerator;
 import com.freenow.sauron.plugins.generator.python.PythonRequirementsDependencyGenerator;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
@@ -26,8 +27,10 @@ public class DependencyGeneratorFactory
                 return Optional.of(new GradleGroovyDependencyGenerator(properties));
             case GRADLE_KOTLIN_DSL:
                 return Optional.of(new GradleKotlinDslDependencyGenerator(properties));
-            case NODEJS:
-                return Optional.of(new NodeJsDependencyGenerator(properties));
+            case NODEJS_NPM:
+                return Optional.of(new NodeJsNpmDependencyGenerator(properties));
+            case NODEJS_YARN:
+                return Optional.of(new NodeJsYarnDependencyGenerator(properties));
             case PYTHON_REQUIREMENTS:
                 return Optional.of(new PythonRequirementsDependencyGenerator(properties));
             case PYTHON_POETRY:

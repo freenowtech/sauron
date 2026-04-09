@@ -1,6 +1,22 @@
 FROM eclipse-temurin:11-jre AS java-dist
 FROM node:24-slim AS node-dist
 FROM anchore/syft:v1.42.3 AS syft-dist
+# TODO remove this stage once https://github.com/CycloneDX/cyclonedx-node-yarn/pull/490 is merged
+FROM node-dist AS cyclonedx-yarn
+
+RUN corepack enable yarn
+
+RUN yarn set version 4.13.0
+
+RUN apt-get update && apt-get install -y --no-install-recommends git
+
+RUN GIT_SSL_NO_VERIFY=true git clone -b support-package-lock-only https://github.com/molikuner/cyclonedx-node-yarn.git /cyclonedx
+
+WORKDIR /cyclonedx
+
+RUN yarn install --immutable
+
+RUN yarn run build
 
 # Consolidated Tooling Image with Python, Node, and Syft (SBOM Generator)
 FROM python:3.11-slim AS sauron-tooling
@@ -31,6 +47,13 @@ RUN python -m pip install --upgrade pip && \
     ln -s /root/.local/bin/cyclonedx-py /usr/local/bin/cyclonedx-py
 
 ENV PATH="/usr/local/bin:${PATH}"
+
+# Install cyclonedx yarn plugin
+# TODO Instead of copying from custom build above, use the download below after merge of https://github.com/CycloneDX/cyclonedx-node-yarn/pull/490
+COPY --from=cyclonedx-yarn /cyclonedx/bundles/@yarnpkg/plugin-cyclonedx.js /yarn-plugins/cyclonedx.js
+#RUN mkdir -p /yarn-plugins && \
+#    curl --silent --location https://github.com/CycloneDX/cyclonedx-node-yarn/releases/download/v3.3.1/yarn-plugin-cyclonedx.cjs > /yarn-plugins/cyclonedx.js
+ENV YARN_PLUGINS=/yarn-plugins/cyclonedx.js
 
 
 # Final image - Inherits tools and adds Java, Maven, and service configs
