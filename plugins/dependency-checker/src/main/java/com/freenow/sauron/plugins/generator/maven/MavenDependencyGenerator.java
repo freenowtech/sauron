@@ -65,7 +65,7 @@ public class MavenDependencyGenerator extends DependencyGenerator
         Plugin plugin = new Plugin();
         plugin.setGroupId("org.cyclonedx");
         plugin.setArtifactId("cyclonedx-maven-plugin");
-        plugin.setVersion("1.6.4");
+        plugin.setVersion("2.9.3");
 
         Xpp3Dom includeTestScope = new Xpp3Dom("includeTestScope");
         includeTestScope.setValue("true");
