@@ -17,7 +17,7 @@ public class NodeJsYarnDependencyGenerator extends NodeJsDependencyGenerator {
     private static final String[] YARN_CYCLONEDX_SBOM = {
             "yarn",
             "cyclonedx",
-            "--package-lock-only",
+            "--lockfile-only",
             "--prod",
             "--short-PURLs",
             "--output-file",
