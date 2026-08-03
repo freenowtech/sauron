@@ -1,16 +1,20 @@
 package com.freenow.sauron.plugins;
 
 import com.freenow.sauron.model.DataSet;
+import com.freenow.sauron.plugins.elasticsearch.DependenciesModel;
+import com.freenow.sauron.plugins.elasticsearch.ElasticSearchClient;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import org.apache.commons.io.FileUtils;
-import org.cyclonedx.exception.ParseException;
-import org.cyclonedx.model.Bom;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Component;
-import org.cyclonedx.parsers.XmlParser;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedConstruction;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +46,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 
 public class DependencyCheckerTest
 {
@@ -87,6 +93,20 @@ public class DependencyCheckerTest
         DataSet dataSet = createDataSet("pom.xml", "pom.xml");
         dataSet = plugin.apply(pluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", MAVEN.toString());
+
+        assertDependencies(
+            Map.of(
+                "org.apache.tomcat.embed:tomcat-embed-websocket", "11.0.22",
+                "org.apache.tomcat.embed:tomcat-embed-el", "11.0.22",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7", "2.3.21",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8", "1.3.50",
+                "javax.annotation:javax_annotation-api", "1.3.2",
+                "org.apache.tomcat.embed:tomcat-embed-core", "11.0.22",
+                "org.jetbrains.kotlin:kotlin-stdlib", "2.3.21",
+                "org.jetbrains:annotations", "13.0",
+                "org.springframework.boot:spring-boot-starter-tomcat", "2.1.2.RELEASE"
+            )
+        );
     }
 
 
@@ -97,16 +117,14 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(pluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", GRADLE_GROOVY.toString());
 
-        Path bomXmlPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
-        assertTrue("BOM file should exist at " + bomXmlPath, Files.exists(bomXmlPath));
-        Bom bom = parseBomXmlFromFile(bomXmlPath);
-        assertTrue(
-            "kotlin-stdlib-jdk8@1.3.61 should be present in bom.xml",
-            hasDependency(bom, "org.jetbrains.kotlin", "kotlin-stdlib-jdk8", "1.3.61")
-        );
-        assertTrue(
-            "BOM should contain all direct dependencies from build.gradle and their transitive dependencies identified by Gradle",
-            bom.getComponents().stream().anyMatch(c -> c.getType() == Component.Type.LIBRARY)
+        assertDependencies(
+            Map.of(
+                "org.jetbrains.kotlin:kotlin-stdlib", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-common", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8", "1.3.61",
+                "org.jetbrains:annotations", "13.0"
+            )
         );
     }
 
@@ -118,16 +136,14 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(pluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", GRADLE_GROOVY.toString());
 
-        Path bomXmlPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
-        assertTrue("BOM file should exist at " + bomXmlPath, Files.exists(bomXmlPath));
-        Bom bom = parseBomXmlFromFile(bomXmlPath);
-        assertTrue(
-            "kotlin-stdlib-jdk8@1.3.61 should be present in bom.xml",
-            hasDependency(bom, "org.jetbrains.kotlin", "kotlin-stdlib-jdk8", "1.3.61")
-        );
-        assertTrue(
-            "BOM should contain all direct dependencies from build-noplugin.gradle and their transitive dependencies identified by Gradle",
-            bom.getComponents().stream().anyMatch(c -> c.getType() == Component.Type.LIBRARY)
+        assertDependencies(
+            Map.of(
+                "org.jetbrains.kotlin:kotlin-stdlib", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-common", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8", "1.3.61",
+                "org.jetbrains:annotations", "13.0"
+            )
         );
     }
 
@@ -139,22 +155,20 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(pluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", GRADLE_KOTLIN_DSL.toString());
 
-        Path bomXmlPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
-        assertTrue("BOM file should exist at " + bomXmlPath, Files.exists(bomXmlPath));
-        Bom bom = parseBomXmlFromFile(bomXmlPath);
-        assertTrue(
-            "kotlin-stdlib-jdk8@1.3.61 should be present in bom.xml",
-            hasDependency(bomXmlPath, "org.jetbrains.kotlin", "kotlin-stdlib-jdk8", "1.3.61")
-        );
-        assertTrue(
-            "BOM should contain all direct dependencies from build.gradle.kts and their transitive dependencies identified by Gradle",
-            bom.getComponents().stream().anyMatch(c -> c.getType() == Component.Type.LIBRARY)
+        assertDependencies(
+            Map.of(
+                "org.jetbrains.kotlin:kotlin-stdlib", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-common", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7", "1.3.61",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8", "1.3.61",
+                "org.jetbrains:annotations", "13.0"
+            )
         );
     }
 
 
     @Test
-    public void testDependencyCheckerNodeJsNpm() throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    public void testDependencyCheckerNodeJsNpm() throws IOException, URISyntaxException
     {
         DataSet dataSet = createDataSet(Map.of(
             "package.json", "package.json",
@@ -164,15 +178,16 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", NODEJS_NPM.toString());
 
-        Path bomJsonPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
-        assertTrue("BOM file should exist at " + bomJsonPath, Files.exists(bomJsonPath));
-        assertTrue("react@18.0.0 should be present in bom.json", hasJsonDependency(bomJsonPath, "react", "18.0.0"));
-        assertEquals("BOM should contain 1 library component (react)", 1, invokeParseCycloneDxJson(plugin, bomJsonPath).size());
+        assertDependencies(
+            Map.of(
+                "org.npmjs:react", "18.0.0"
+            )
+        );
     }
 
 
     @Test
-    public void testDependencyCheckerNodeJsYarn() throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    public void testDependencyCheckerNodeJsYarn() throws IOException, URISyntaxException
     {
         DataSet dataSet = createDataSet(Map.of(
             "package.json", "package.json",
@@ -181,17 +196,13 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", NODEJS_YARN.toString());
 
-        Path bomJsonPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
-        assertTrue("BOM file should exist at " + bomJsonPath, Files.exists(bomJsonPath));
-        Map<String, String> dependencies = Map.of(
-            "react", "18.0.0",
-            "loose-envify", "1.4.0",
-            "js-tokens", "4.0.0"
+        assertDependencies(
+            Map.of(
+                "org.npmjs:react", "18.0.0",
+                "org.npmjs:loose-envify", "1.4.0",
+                "org.npmjs:js-tokens", "4.0.0"
+            )
         );
-        for (Map.Entry<String, String> dependency : dependencies.entrySet()) {
-            assertTrue(dependency.getKey() + "@" + dependency.getValue() + " should be present in bom.json", hasJsonDependency(bomJsonPath, dependency.getKey(), dependency.getValue()));
-        }
-        assertEquals("BOM should contain 1 library component (react)", dependencies.size(), invokeParseCycloneDxJson(plugin, bomJsonPath).size());
     }
 
 
@@ -203,6 +214,7 @@ public class DependencyCheckerTest
         ));
         dataSet = plugin.apply(createNodeJsPluginConfigurationProperties(), dataSet);
         checkKeyNotPresent(dataSet, "cycloneDxBomPath");
+        assertNoDependenciesReport();
     }
 
 
@@ -213,32 +225,13 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(createPythonPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", PYTHON_REQUIREMENTS.toString());
 
-        Path bomXmlPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
-        assertTrue("BOM file should exist at " + bomXmlPath, Files.exists(bomXmlPath));
-        Bom bom = parseBomXmlFromFile(bomXmlPath);
-        assertTrue(
-            "packaging==21.3 should be present in bom.xml",
-            hasDependency(bom, null, "packaging", "21.3")
-        );
-        assertTrue(
-            "boto3==1.17.105 should be present in bom.xml",
-            hasDependency(bom, null, "boto3", "1.17.105")
-        );
-        assertTrue(
-            "requests should be present in bom.xml",
-            hasDependency(bom, null, "requests", null)
-        );
-        assertTrue(
-            "eventlet should be present in bom.xml",
-            hasDependency(bom, null, "eventlet", null)
-        );
-        assertTrue(
-            "eventlet should be present in bom.xml",
-            hasDependency(bom, null, "eventlet", null)
-        );
-        assertEquals(
-            "Should have same number of dependencies",
-            4, bom.getComponents().stream().filter(c -> c.getType() == Component.Type.LIBRARY).count()
+        assertDependencies(
+            Map.of(
+                "org.python:packaging", "21.3",
+                "org.python:boto3", "1.17.105",
+                "org.python:requests", "null",
+                "org.python:eventlet", "null"
+            )
         );
     }
 
@@ -250,20 +243,18 @@ public class DependencyCheckerTest
         dataSet = plugin.apply(createPythonPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", PYTHON_POETRY.toString());
 
-        Path bomXmlPath = Paths.get((String) dataSet.getObjectAdditionalInformation("cycloneDxBomPath").orElseThrow());
-        assertTrue("BOM file should exist at " + bomXmlPath, Files.exists(bomXmlPath));
-        Bom bom = parseBomXmlFromFile(bomXmlPath);
-        assertTrue(
-            "packaging=21.3 should be present in bom.xml",
-            hasDependency(bom, null, "packaging", "21.3")
-        );
-        assertTrue(
-            "boto3=1.17.105 should be present in bom.xml",
-            hasDependency(bom, null, "boto3", "1.17.105")
-        );
-        assertTrue(
-            "BOM should contain all direct dependencies from pyproject.toml and their transitive dependencies identified by Poetry",
-            bom.getComponents().stream().filter(c -> c.getType() == Component.Type.LIBRARY).count() >= 4
+        assertDependencies(
+            Map.of(
+                "org.python:packaging", "21.3",
+                "org.python:boto3", "1.17.105",
+                "org.python:s3transfer", "0.4.2",
+                "org.python:urllib3", "1.26.20",
+                "org.python:botocore", "1.20.112",
+                "org.python:jmespath", "0.10.0",
+                "org.python:six", "1.17.0",
+                "org.python:python-dateutil", "2.9.0.post0",
+                "org.python:pyparsing", "3.1.4"
+            )
         );
     }
 
@@ -274,6 +265,7 @@ public class DependencyCheckerTest
         DataSet dataSet = createDataSet("build.sbt", "build.sbt");
         dataSet = plugin.apply(pluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", SBT.toString());
+        assertNoDependenciesReport();
     }
 
 
@@ -283,6 +275,7 @@ public class DependencyCheckerTest
         DataSet dataSet = createDataSet("project.clj", "project.clj");
         dataSet = plugin.apply(pluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", CLOJURE.toString());
+        assertNoDependenciesReport();
     }
 
 
@@ -294,17 +287,12 @@ public class DependencyCheckerTest
         );
         dataSet = plugin.apply(createGoPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", GO.toString());
-        Path bomXmlPath = tempFolder.getRoot().toPath().resolve("go-sbom/bom.xml");
-        checkKeyPresent(dataSet, "cycloneDxBomPath", bomXmlPath.toString());
 
-        Bom bom = parseBomXmlFromFile(bomXmlPath);
-        assertTrue(
-            "yaml.v2@v2.4.0 should be present in bom.xml",
-            hasDependency(bom, null, "gopkg.in/yaml.v2", "v2.4.0")
-        );
-        assertEquals(
-            "Should have same number of dependencies",
-            1, bom.getComponents().stream().filter(c -> c.getType() == Component.Type.LIBRARY).count()
+        assertDependencies(
+            Map.of(
+                "org.golang:/wrk/go_mod", "null",
+                "org.golang:gopkg_in/yaml_v2", "v2.4.0"
+            )
         );
     }
 
@@ -317,51 +305,39 @@ public class DependencyCheckerTest
         );
         dataSet = plugin.apply(createGoPluginConfigurationProperties(), dataSet);
         checkKeyPresent(dataSet, "projectType", GO.toString());
-        Path bomXmlPath = tempFolder.getRoot().toPath().resolve("go-sbom-sub/dummys/bom.xml");
-        checkKeyPresent(dataSet, "cycloneDxBomPath", bomXmlPath.toString());
 
-        Bom bom = parseBomXmlFromFile(bomXmlPath);
-        Map<String, String> expectedDeps = Map.ofEntries(
-            Map.entry("github.com/MicahParks/keyfunc", "v1.9.0"),
-            Map.entry("github.com/golang-jwt/jwt/v4", "v4.4.2"),
-            Map.entry("github.com/lestrrat-go/jwx/v2", "v2.1.4"),
-            Map.entry("github.com/prometheus/client_golang", "v1.21.1"),
-            Map.entry("github.com/stretchr/testify", "v1.10.0"),
-            Map.entry("gitlab.free-now.com/free-now/sre-backend/fnlog", "v0.6.0"),
-            Map.entry("github.com/beorn7/perks", "v1.0.1"),
-            Map.entry("github.com/cespare/xxhash/v2", "v2.3.0"),
-            Map.entry("github.com/davecgh/go-spew", "v1.1.1"),
-            Map.entry("github.com/decred/dcrd/dcrec/secp256k1/v4", "v4.4.0"),
-            Map.entry("github.com/goccy/go-json", "v0.10.3"),
-            Map.entry("github.com/klauspost/compress", "v1.17.11"),
-            Map.entry("github.com/kr/text", "v0.2.0"),
-            Map.entry("github.com/lestrrat-go/blackmagic", "v1.0.2"),
-            Map.entry("github.com/lestrrat-go/httpcc", "v1.0.1"),
-            Map.entry("github.com/lestrrat-go/httprc", "v1.0.6"),
-            Map.entry("github.com/lestrrat-go/iter", "v1.0.2"),
-            Map.entry("github.com/lestrrat-go/option", "v1.0.1"),
-            Map.entry("github.com/munnerz/goautoneg", "v0.0.0-20191010083416-a7dc8b61c822"),
-            Map.entry("github.com/pmezard/go-difflib", "v1.0.0"),
-            Map.entry("github.com/prometheus/client_model", "v0.6.1"),
-            Map.entry("github.com/prometheus/common", "v0.62.0"),
-            Map.entry("github.com/prometheus/procfs", "v0.15.1"),
-            Map.entry("github.com/segmentio/asm", "v1.2.0"),
-            Map.entry("golang.org/x/crypto", "v0.32.0"),
-            Map.entry("golang.org/x/sys", "v0.29.0"),
-            Map.entry("google.golang.org/protobuf", "v1.36.1"),
-            Map.entry("gopkg.in/yaml.v3", "v3.0.1")
-        );
-
-        expectedDeps.forEach((name, version) ->
-            assertTrue(
-                String.format("%s@%s should be present in bom.xml", name, version),
-                hasDependency(bom, null, name, version)
+        assertDependencies(
+            Map.ofEntries(
+                Map.entry("org.golang:/wrk/go_mod", "null"),
+                Map.entry("org.golang:github_com/MicahParks/keyfunc", "v1.9.0"),
+                Map.entry("org.golang:github_com/golang-jwt/jwt/v4", "v4.4.2"),
+                Map.entry("org.golang:github_com/lestrrat-go/jwx/v2", "v2.1.4"),
+                Map.entry("org.golang:github_com/prometheus/client_golang", "v1.21.1"),
+                Map.entry("org.golang:github_com/stretchr/testify", "v1.10.0"),
+                Map.entry("org.golang:gitlab_free-now_com/free-now/sre-backend/fnlog", "v0.6.0"),
+                Map.entry("org.golang:github_com/beorn7/perks", "v1.0.1"),
+                Map.entry("org.golang:github_com/cespare/xxhash/v2", "v2.3.0"),
+                Map.entry("org.golang:github_com/davecgh/go-spew", "v1.1.1"),
+                Map.entry("org.golang:github_com/decred/dcrd/dcrec/secp256k1/v4", "v4.4.0"),
+                Map.entry("org.golang:github_com/goccy/go-json", "v0.10.3"),
+                Map.entry("org.golang:github_com/klauspost/compress", "v1.17.11"),
+                Map.entry("org.golang:github_com/kr/text", "v0.2.0"),
+                Map.entry("org.golang:github_com/lestrrat-go/blackmagic", "v1.0.2"),
+                Map.entry("org.golang:github_com/lestrrat-go/httpcc", "v1.0.1"),
+                Map.entry("org.golang:github_com/lestrrat-go/httprc", "v1.0.6"),
+                Map.entry("org.golang:github_com/lestrrat-go/iter", "v1.0.2"),
+                Map.entry("org.golang:github_com/lestrrat-go/option", "v1.0.1"),
+                Map.entry("org.golang:github_com/munnerz/goautoneg", "v0.0.0-20191010083416-a7dc8b61c822"),
+                Map.entry("org.golang:github_com/pmezard/go-difflib", "v1.0.0"),
+                Map.entry("org.golang:github_com/prometheus/client_model", "v0.6.1"),
+                Map.entry("org.golang:github_com/prometheus/common", "v0.62.0"),
+                Map.entry("org.golang:github_com/prometheus/procfs", "v0.15.1"),
+                Map.entry("org.golang:github_com/segmentio/asm", "v1.2.0"),
+                Map.entry("org.golang:golang_org/x/crypto", "v0.32.0"),
+                Map.entry("org.golang:golang_org/x/sys", "v0.29.0"),
+                Map.entry("org.golang:google_golang_org/protobuf", "v1.36.1"),
+                Map.entry("org.golang:gopkg_in/yaml_v3", "v3.0.1")
             )
-        );
-        assertEquals(
-            "Should have same number of dependencies",
-            expectedDeps.size(),
-            bom.getComponents().stream().filter(c -> c.getType() == Component.Type.LIBRARY).count()
         );
     }
 
@@ -599,51 +575,6 @@ public class DependencyCheckerTest
     }
 
 
-    private boolean hasJsonDependency(Path bomJsonPath, String name, String version) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
-    {
-        List<Component> components = invokeParseCycloneDxJson(plugin, bomJsonPath);
-        return components.stream()
-            .anyMatch(c -> name.equals(c.getName()) && version.equals(c.getVersion()));
-    }
-
-
-    private boolean hasDependency(Path bomXmlPath, String group, String name, String version)
-    {
-        return hasDependency(parseBomXmlFromFile(bomXmlPath), group, name, version);
-    }
-
-
-    private boolean hasDependency(Bom bom, String group, String name, String version)
-    {
-        if (bom == null || bom.getComponents() == null)
-        {
-            return false;
-        }
-        return bom.getComponents().stream().anyMatch(c -> matches(c, group, name, version));
-    }
-
-
-    private boolean matches(Component component, String group, String name, String version)
-    {
-        return (group == null || Objects.equals(group, component.getGroup())) &&
-            Objects.equals(name, component.getName()) &&
-            Objects.equals(version, component.getVersion());
-    }
-
-
-    private Bom parseBomXmlFromFile(Path bomXmlPath)
-    {
-        try
-        {
-            return new XmlParser().parse(bomXmlPath.toFile());
-        }
-        catch (ParseException e)
-        {
-            throw new IllegalStateException("Failed to parse BOM file: " + bomXmlPath, e);
-        }
-    }
-
-
     private boolean isDockerAvailable()
     {
         try
@@ -655,5 +586,89 @@ public class DependencyCheckerTest
         {
             return false;
         }
+    }
+
+
+    private MockedConstruction<ElasticSearchClient> clientMockedConstruction;
+
+
+    @Before
+    public void mockElasticSearchClient()
+    {
+        clientMockedConstruction = mockConstruction(ElasticSearchClient.class);
+    }
+
+
+    @After
+    public void unmockElasticSearchClient()
+    {
+        clientMockedConstruction.close();
+    }
+
+
+    private void assertDependencies(
+        Map<String, String> expectedDependencies
+    )
+    {
+        assertEquals(
+            "Unexpected count of reports send to ElasticSearch",
+            1,
+            clientMockedConstruction.constructed().size()
+        );
+        ElasticSearchClient elasticSearchClient = clientMockedConstruction.constructed().get(0);
+        ArgumentCaptor<DependenciesModel> captor = ArgumentCaptor.forClass(DependenciesModel.class);
+        verify(elasticSearchClient).index(captor.capture());
+        DependenciesModel dependenciesModel = captor.getValue();
+
+        Map<String, Object> dependencies = dependenciesModel.getDependencies();
+        Map<String, String> missingDependencies = new HashMap<>();
+        Map<String, Pair<String, Object>> mismatchedDependencies = new HashMap<>();
+        Map<String, Object> unexpectedDependencies = new HashMap<>();
+
+        for (Map.Entry<String, String> dependency : expectedDependencies.entrySet())
+        {
+            if (!dependencies.containsKey(dependency.getKey()))
+            {
+                missingDependencies.put(dependency.getKey(), dependency.getValue());
+            }
+            else if (!dependency.getValue().equals(dependencies.get(dependency.getKey())))
+            {
+                mismatchedDependencies.put(dependency.getKey(), new ImmutablePair<>(dependency.getValue(), dependencies.get(dependency.getKey())));
+            }
+        }
+        for (Map.Entry<String, Object> dependency : dependencies.entrySet())
+        {
+            String name = dependency.getKey().replaceAll("-(normalized|license)$", "");
+            if (!name.equals("licenses") && !expectedDependencies.containsKey(name))
+            {
+                unexpectedDependencies.put(name, dependency.getValue());
+            }
+        }
+
+        assertEquals(
+            "Some dependencies weren't expected to be found",
+            Map.of(),
+            unexpectedDependencies
+        );
+        assertEquals(
+            "Some expected dependencies weren't found",
+            Map.of(),
+            missingDependencies
+        );
+        assertEquals(
+            "Some dependencies did not have the correct versions",
+            Map.of(),
+            mismatchedDependencies
+        );
+    }
+
+
+    private void assertNoDependenciesReport()
+    {
+        assertEquals(
+            "ElasticSearch was called unexpectedly",
+            0,
+            clientMockedConstruction.constructed().size()
+        );
     }
 }

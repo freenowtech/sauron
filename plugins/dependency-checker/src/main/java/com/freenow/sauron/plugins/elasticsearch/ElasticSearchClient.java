@@ -50,13 +50,17 @@ public class ElasticSearchClient
                 RestStatus status = response.status();
                 if (!status.equals(RestStatus.OK) && !status.equals(RestStatus.CREATED))
                 {
-                    log.error(String.format("Error [%s] storing document: %s", status, dependenciesModel.toJson()));
+                    log.error("Error [status: {}] storing document: {}", status, dependenciesModel.toJson());
+                } else {
+                    log.info("Updated dependencies indexed successfully: {}", dependenciesModel.toJson());
                 }
             }
             catch (IOException e)
             {
-                log.error(e.getMessage(), e);
+                log.error("Failure while updating dependencies index: {}", e.getMessage(), e);
             }
+        } else {
+            log.warn("ElasticSearchClient wasn't configured. Dependencies index isn't getting updated!");
         }
     }
 

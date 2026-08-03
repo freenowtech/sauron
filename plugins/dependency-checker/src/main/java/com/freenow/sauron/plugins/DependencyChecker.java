@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.freenow.sauron.model.DataSet;
 import com.freenow.sauron.plugins.elasticsearch.DependenciesModel;
 import com.freenow.sauron.plugins.elasticsearch.ElasticSearchClient;
+import com.freenow.sauron.plugins.generator.DependencyGenerator;
 import com.freenow.sauron.plugins.generator.DependencyGeneratorFactory;
 import com.freenow.sauron.properties.PluginsConfigurationProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -38,21 +39,22 @@ public class DependencyChecker implements SauronExtension
             log.info("Detected project type: {} for repository: {}", projectType, repository);
             input.setAdditionalInformation("projectType", projectType.toString());
 
-            DependencyGeneratorFactory.newInstance(projectType, properties)
-                .map(dependencyGenerator ->
-                {
-                    Path bom = dependencyGenerator.generateCycloneDxBom(repository);
-                    log.info("Generated BOM path: {}", bom);
-                    return bom;
-                })
-                .filter(Files::exists)
-                .ifPresent(bom ->
-                {
-                    log.info("BOM exists, setting cycloneDxBomPath: {}", bom);
-                    input.setAdditionalInformation("cycloneDxBomPath", bom.toString());
-                    DependenciesModel dependenciesModel = DependenciesModel.from(input, parseCycloneDx(bom));
-                    new ElasticSearchClient(properties).index(dependenciesModel);
-                });
+            Optional<DependencyGenerator> dependencyGenerator = DependencyGeneratorFactory.newInstance(projectType, properties);
+            Optional<Path> bomFile = dependencyGenerator.map(generator -> generator.generateCycloneDxBom(repository));
+            Path bom = bomFile.filter(Files::exists).orElse(null);
+
+            if (bom != null) {
+                log.info("Generated BOM using generator {}, setting cycloneDxBomPath: {}", dependencyGenerator.get().getClass().getSimpleName(), bom);
+                input.setAdditionalInformation("cycloneDxBomPath", bom.toString());
+                DependenciesModel dependenciesModel = DependenciesModel.from(input, parseCycloneDx(bom));
+                new ElasticSearchClient(properties).index(dependenciesModel);
+            } else if (bomFile.isPresent()) {
+                log.warn("DependencyGenerator {} returned BOM path, but didn't actually write the file: {}", dependencyGenerator.get().getClass().getSimpleName(), bomFile);
+            } else if (dependencyGenerator.isPresent()) {
+                log.warn("DependencyGenerator {} did not return a BOM path", dependencyGenerator.get().getClass().getSimpleName());
+            } else {
+                log.warn("Could not find DependencyGenerator for repository {} with detected type {}", repository, projectType);
+            }
         });
 
         return input;

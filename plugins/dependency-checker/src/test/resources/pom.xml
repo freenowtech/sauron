@@ -3,9 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.test</groupId>
-    <artifactId>parent</artifactId>
-    <version>1.1.0</version>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.0</version>
   </parent>
   <groupId>service</groupId>
   <artifactId>com.test</artifactId>
