@@ -42,6 +42,7 @@ public class MavenDependencyGenerator extends DependencyGenerator
             InvocationRequest request = new DefaultInvocationRequest();
             request.setTimeoutInSeconds(Math.toIntExact(Duration.ofMinutes(commandTimeoutMinutes).toSeconds()));
             request.setPomFile(pom);
+            request.setBatchMode(true);
             request.setQuiet(!log.isDebugEnabled());
             request.setGoals(Collections.singletonList("cyclonedx:makeBom"));
 
