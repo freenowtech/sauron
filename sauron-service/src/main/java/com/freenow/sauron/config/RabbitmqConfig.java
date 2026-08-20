@@ -5,7 +5,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,22 +24,24 @@ public class RabbitmqConfig
 
 
     @Bean
-    public SimpleRabbitListenerContainerFactory eventBusPrefetchCount(
-        @Qualifier("eventBus") SimpleRabbitListenerContainerFactory eventBus,
+    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+        final ConnectionFactory connectionFactory,
         final Jackson2JsonMessageConverter converter)
     {
-        eventBus.setPrefetchCount(1);
-        eventBus.setMessageConverter(converter);
-        return eventBus;
+        final var factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setPrefetchCount(1);
+        factory.setMessageConverter(converter);
+        return factory;
     }
 
 
     @Bean
     public RabbitTemplate rabbitTemplate(
-        final ConnectionFactory multiRabbitConnectionFactory,
+        final ConnectionFactory connectionFactory,
         final Jackson2JsonMessageConverter converter)
     {
-        final var rabbitTemplate = new RabbitTemplate(multiRabbitConnectionFactory);
+        final var rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(converter);
         return rabbitTemplate;
     }

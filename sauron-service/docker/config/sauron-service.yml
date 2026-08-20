@@ -36,27 +36,12 @@ management:
 # Spring configuration
 #################################################################
 spring:
-  #################################################################
-  # SpringConfigBus configuration
-  # Rabbitmq used to enable hot reloading of your configuration[1]
-  # Comment the block below and uncomment rabbitmq configuration
-  # to enable SpringConfigBus
-  #
-  # [1] https://www.baeldung.com/spring-cloud-bus
-  #################################################################
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
-  cloud:
-    stream:
-      default:
-        consumer:
-          autoStartup: false
-#  rabbitmq:
-#    requested-heartbeat: 5
-#    host: configbus.hostname
-#    port: 5672
-#    username: sauron-service
-#    password: iamasecret
+  rabbitmq:
+    enabled: true
+    host: eventsbus.hostname
+    port: 5672
+    username: sauron-service
+    password: iamasecret
 
      #################################################################
      # Sauron Rabbitmq Request Handler
@@ -68,20 +53,6 @@ spring:
      # [1] src/main/java/com/freenow/sauron/handler/impl/RabbitmqRequestHandler.java
      #################################################################
 #    enabled: true
-  #################################################################
-  # When using Sauron Request Handler another Rabbitmq host can be used,
-  # different from the SpringConfigBus. In order to allow that, Sauron
-  # make usage of freenowtech/spring-multirabbit [1]
-  #
-  # [1] https://github.com/freenowtech/spring-multirabbit
-  #################################################################
-#  multirabbitmq:
-#    connections:
-#      eventBus:
-#        host: eventsbus.hostname
-#        port: 5672
-#        username: sauron-service
-#        password: iamasecret
 
 #################################################################
 # Sauron configuration
