@@ -18,7 +18,7 @@ import static com.freenow.sauron.utils.Constants.SAURON_QUEUE_NAME;
 @Setter
 public class RabbitmqRequestHandler implements RequestHandler
 {
-    private static final String ASYNC_CONTAINER_FACTORY = "eventBus";
+    private static final String ASYNC_CONTAINER_FACTORY = "rabbitListenerContainerFactory";
 
     private static final String LISTENER_ID = "sauron-consumer";
 
